@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Tally Sheet - PT. CPI Food Division Sragen</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    }
+    .toast-success { background: #10b981; }
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #3b82f6; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .confirm-box {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+    .loading-spinner-dark {
+      border-color: #6366f1;
+      border-top-color: transparent;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .tab-btn { transition: all 0.2s; }
+    .tab-btn.active {
+      background: #4f46e5;
+      color: white;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-auto">
+  <div class="min-h-full w-full p-4 md:p-6">
+   <div class="max-w-5xl mx-auto"><!-- Header -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+     <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+       <h1 id="app-title" class="text-2xl md:text-3xl font-bold text-indigo-700">Easy Tally Sheet</h1>
+       <p id="company-name" class="text-slate-500 mt-1">PT. Charoen Pokphand Indonesia Food Division - Sragen</p>
+      </div>
+      <div class="flex items-center gap-2"><span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700"> <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> Online </span>
+      </div>
+     </div><!-- Navigation Tabs -->
+     <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100"><button id="tabInput" class="tab-btn active px-4 py-2 rounded-lg font-medium text-sm bg-slate-100 text-slate-600 hover:bg-slate-200"> 📝 Input Data </button> <button id="tabHistory" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm bg-slate-100 text-slate-600 hover:bg-slate-200"> 📋 Riwayat Sesi </button>
+     </div>
+    </div><!-- Page 1: Input Data -->
+    <div id="pageInput" class="page active">
+     <div class="grid lg:grid-cols-3 gap-6"><!-- Left Column - Input Form -->
+      <div class="lg:col-span-2 space-y-6"><!-- Session Info Card -->
+       <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+         <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg> Info Sesi</h2>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Tanggal</label> <input id="tgl" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Customer</label> <input id="cust" type="text" placeholder="Nama customer" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Item</label> <input id="item" type="text" placeholder="Nama item" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Ekspedisi</label> <input id="ekspedisi" type="text" placeholder="Nama ekspedisi" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Checker</label> <input id="checker" type="text" placeholder="Nama checker" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+         <div><label class="block text-sm font-medium text-slate-600 mb-1">Plat Nomor</label> <input id="platnomor" type="text" placeholder="Plat nomor kendaraan" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+         </div>
+        </div>
+       </div><!-- Weight Input Card -->
+       <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+         </svg> Input Berat Karung</h2>
+        <div class="flex gap-3">
+         <div class="flex-1 relative"><input type="number" id="inputGram" placeholder="Masukkan berat" class="w-full p-4 pr-16 border border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"> <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">gram</span>
+         </div><button id="btnAdd" class="px-6 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 active:scale-95 transition flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg> Tambah </button>
+        </div>
+       </div><!-- Data Table Card -->
+       <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+         <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg> Data Karung</h2><span id="recordCount" class="text-sm text-slate-500">0 karung</span>
+        </div>
+        <div id="emptyState" class="py-12 text-center text-slate-400">
+         <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+         </svg> Belum ada data karung
+        </div>
+        <div id="multiColumnContainer" class="hidden overflow-x-auto">
+         <div id="columnsWrapper" class="flex gap-4 min-w-max">
+         </div>
+        </div>
+       </div>
+      </div><!-- Right Column - Stats & Actions -->
+      <div class="space-y-6"><!-- Statistics Card -->
+       <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white">
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+         </svg> Statistik</h2>
+        <div class="space-y-4">
+         <div class="bg-white/10 rounded-xl p-4">
+          <p class="text-white/70 text-sm">Total Berat</p>
+          <p class="text-2xl font-bold"><span id="tot">0</span> <span class="text-lg font-normal">gram</span></p>
+          <p class="text-white/70 text-sm mt-1"><span id="totKg">0</span> kg</p>
+         </div>
+         <div class="grid grid-cols-3 gap-3">
+          <div class="bg-white/10 rounded-xl p-3 text-center">
+           <p class="text-white/70 text-xs">Rata-rata</p>
+           <p class="text-lg font-semibold"><span id="avg">0</span></p>
+           <p class="text-white/60 text-xs">gram</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3 text-center">
+           <p class="text-white/70 text-xs">Min</p>
+           <p class="text-lg font-semibold"><span id="min">0</span></p>
+           <p class="text-white/60 text-xs">gram</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3 text-center">
+           <p class="text-white/70 text-xs">Max</p>
+           <p class="text-lg font-semibold"><span id="max">0</span></p>
+           <p class="text-white/60 text-xs">gram</p>
+          </div>
+         </div>
+        </div>
+       </div><!-- Actions Card -->
+       <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+         </svg> Export Data</h2>
+        <div class="space-y-3"><button id="btnExcel" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 active:scale-98 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg> Export Excel </button> <button id="btnPDF" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 active:scale-98 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg> Export PDF </button>
+        </div>
+       </div><!-- Session Actions Card -->
+       <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+         </svg> Sesi</h2>
+        <div class="space-y-3"><button id="btnSaveSession" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 active:scale-98 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg><span id="btnSaveSessionText">Simpan Sesi</span> </button> <button id="btnNewSession" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-500 text-white rounded-xl font-medium hover:bg-indigo-600 active:scale-98 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg> Sesi Baru </button> <button id="btnReset" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 active:scale-98 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg> Hapus Semua Data </button>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Page 2: Session History -->
+    <div id="pageHistory" class="page">
+     <div class="bg-white rounded-2xl shadow-lg p-6">
+      <div class="flex items-center justify-between mb-6">
+       <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> Riwayat Sesi Tersimpan</h2><span id="sessionCount" class="text-sm text-slate-500">0 sesi</span>
+      </div>
+      <div id="historyEmpty" class="py-16 text-center text-slate-400">
+       <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+       </svg>
+       <p class="text-lg font-medium">Belum ada sesi tersimpan</p>
+       <p class="text-sm mt-1">Klik "Simpan Sesi" di halaman Input Data untuk menyimpan</p>
+      </div>
+      <div id="historyList" class="hidden space-y-4"><!-- Session cards will be rendered here -->
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Confirm Dialog Container -->
+  <div id="confirmDialog" class="hidden"></div>
+  <script>
+    // Default config
+    const defaultConfig = {
+      app_title: 'Easy Tally Sheet',
+      company_name: 'PT. Charoen Pokphand Indonesia Food Division - Sragen',
+      primary_color: '#4f46e5',
+      secondary_color: '#7c3aed',
+      accent_color: '#10b981',
+      text_color: '#1e293b',
+      background_color: '#f8fafc'
+    };
+
+    let config = { ...defaultConfig };
+    let allData = [];
+    let currentSessionId = loadSessionId() || generateSessionId();
+
+    // Helper functions
+    function $(id) { return document.getElementById(id); }
+    
+    function generateSessionId() {
+      return 'S' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+    }
+
+    function loadSessionId() {
+      try { return localStorage.getItem('tallysheet_session_id'); } catch (e) { return null; }
+    }
+
+    function saveSessionId(id) {
+      try { localStorage.setItem('tallysheet_session_id', id); } catch (e) {}
+    }
+
+    function loadSessionInfo() {
+      try {
+        const saved = localStorage.getItem('tallysheet_session_info');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return null;
+    }
+
+    function saveSessionInfo() {
+      try {
+        const info = {
+          tanggal: $('tgl').value,
+          customer: $('cust').value,
+          item: $('item').value,
+          ekspedisi: $('ekspedisi').value,
+          checker: $('checker').value,
+          plat_nomor: $('platnomor').value
+        };
+        localStorage.setItem('tallysheet_session_info', JSON.stringify(info));
+      } catch (e) {}
+    }
+
+    function restoreSessionInfo() {
+      const info = loadSessionInfo();
+      if (info) {
+        if (info.tanggal) $('tgl').value = info.tanggal;
+        if (info.customer) $('cust').value = info.customer;
+        if (info.item) $('item').value = info.item;
+        if (info.ekspedisi) $('ekspedisi').value = info.ekspedisi;
+        if (info.checker) $('checker').value = info.checker;
+        if (info.plat_nomor) $('platnomor').value = info.plat_nomor;
+      }
+    }
+
+    function clearSessionInfo() {
+      try {
+        localStorage.removeItem('tallysheet_session_info');
+        localStorage.removeItem('tallysheet_session_id');
+      } catch (e) {}
+    }
+
+    function showToast(message, type = 'info') {
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) existingToast.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showConfirm(title, message, onConfirm) {
+      const dialog = $('confirmDialog');
+      dialog.innerHTML = `
+        <div class="confirm-overlay">
+          <div class="confirm-box">
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">${title}</h3>
+            <p class="text-slate-600 mb-6">${message}</p>
+            <div class="flex gap-3 justify-end">
+              <button id="confirmCancel" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Batal</button>
+              <button id="confirmOk" class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">Ya, Lanjutkan</button>
+            </div>
+          </div>
+        </div>
+      `;
+      dialog.classList.remove('hidden');
+      
+      $('confirmCancel').onclick = () => dialog.classList.add('hidden');
+      $('confirmOk').onclick = () => {
+        dialog.classList.add('hidden');
+        onConfirm();
+      };
+    }
+
+    function formatNumber(num) {
+      return num.toLocaleString('id-ID');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    // Tab navigation
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      
+      if (tab === 'input') {
+        $('tabInput').classList.add('active');
+        $('pageInput').classList.add('active');
+      } else {
+        $('tabHistory').classList.add('active');
+        $('pageHistory').classList.add('active');
+        renderSessionHistory();
+      }
+    }
+
+    function getCurrentSessionData() {
+      return allData.filter(d => d.session_id === currentSessionId);
+    }
+
+    // Get unique sessions from data
+    function getUniqueSessions() {
+      const sessionMap = new Map();
+      
+      allData.forEach(item => {
+        const sid = item.session_id;
+        if (!sessionMap.has(sid)) {
+          sessionMap.set(sid, {
+            session_id: sid,
+            tanggal: item.tanggal,
+            customer: item.customer,
+            item: item.item,
+            ekspedisi: item.ekspedisi,
+            checker: item.checker,
+            plat_nomor: item.plat_nomor,
+            items: [],
+            total_berat: 0,
+            created_at: item.created_at
+          });
+        }
+        const session = sessionMap.get(sid);
+        session.items.push(item);
+        session.total_berat += item.berat_gram;
+      });
+      
+      // Sort by created_at descending
+      return Array.from(sessionMap.values()).sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+        return dateB - dateA;
+      });
+    }
+
+    function updateStats() {
+      const sessionData = getCurrentSessionData();
+      const weights = sessionData.map(d => d.berat_gram);
+      
+      const total = weights.reduce((a, b) => a + b, 0);
+      const avg = weights.length ? Math.round(total / weights.length) : 0;
+      const min = weights.length ? Math.min(...weights) : 0;
+      const max = weights.length ? Math.max(...weights) : 0;
+      
+      $('tot').textContent = formatNumber(total);
+      $('totKg').textContent = (total / 1000).toFixed(2);
+      $('avg').textContent = formatNumber(avg);
+      $('min').textContent = formatNumber(min);
+      $('max').textContent = formatNumber(max);
+      $('recordCount').textContent = `${sessionData.length} karung`;
+    }
+
+    const ROWS_PER_COLUMN = 30;
+
+    function renderTable() {
+      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      const emptyState = $('emptyState');
+      const multiColumnContainer = $('multiColumnContainer');
+      const columnsWrapper = $('columnsWrapper');
+      
+      if (sessionData.length === 0) {
+        emptyState.classList.remove('hidden');
+        multiColumnContainer.classList.add('hidden');
+        updateStats();
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      multiColumnContainer.classList.remove('hidden');
+
+      const numColumns = Math.ceil(sessionData.length / ROWS_PER_COLUMN);
+      const columns = [];
+      for (let i = 0; i < numColumns; i++) {
+        const start = i * ROWS_PER_COLUMN;
+        const end = Math.min(start + ROWS_PER_COLUMN, sessionData.length);
+        columns.push(sessionData.slice(start, end));
+      }
+
+      columnsWrapper.innerHTML = columns.map((columnData, colIndex) => {
+        const startNum = colIndex * ROWS_PER_COLUMN + 1;
+        const endNum = startNum + columnData.length - 1;
+        
+        return `
+          <div class="flex-shrink-0 w-64 rounded-xl border border-slate-200 overflow-hidden">
+            <div class="bg-indigo-50 px-3 py-2 border-b border-slate-200">
+              <span class="text-sm font-semibold text-indigo-700">Kolom ${colIndex + 1}</span>
+              <span class="text-xs text-indigo-500 ml-2">(No. ${startNum}-${endNum})</span>
+            </div>
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50">
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 border-b w-12">No</th>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 border-b">Berat</th>
+                  <th class="px-3 py-2 text-center text-xs font-semibold text-slate-600 border-b w-16">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${columnData.map((item, index) => `
+                  <tr class="hover:bg-slate-50 transition" data-id="${item.__backendId}">
+                    <td class="px-3 py-2 text-slate-500 text-xs">${colIndex * ROWS_PER_COLUMN + index + 1}</td>
+                    <td class="px-3 py-2 font-medium text-slate-800 text-sm">${formatNumber(item.berat_gram)}g</td>
+                    <td class="px-3 py-1 text-center">
+                      <div class="flex items-center justify-center gap-0.5">
+                        <button class="edit-btn p-1.5 text-indigo-500 hover:bg-indigo-50 rounded transition" data-id="${item.__backendId}" title="Edit">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        </button>
+                        <button class="delete-btn p-1.5 text-rose-500 hover:bg-rose-50 rounded transition" data-id="${item.__backendId}" title="Hapus">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }).join('');
+
+      columnsWrapper.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = () => handleEdit(btn.dataset.id);
+      });
+      columnsWrapper.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = () => handleDelete(btn.dataset.id);
+      });
+
+      updateStats();
+    }
+
+    // Render session history page
+    function renderSessionHistory() {
+      const sessions = getUniqueSessions();
+      const historyEmpty = $('historyEmpty');
+      const historyList = $('historyList');
+      
+      $('sessionCount').textContent = `${sessions.length} sesi`;
+      
+      if (sessions.length === 0) {
+        historyEmpty.classList.remove('hidden');
+        historyList.classList.add('hidden');
+        return;
+      }
+      
+      historyEmpty.classList.add('hidden');
+      historyList.classList.remove('hidden');
+      
+      historyList.innerHTML = sessions.map(session => {
+        const isCurrentSession = session.session_id === currentSessionId;
+        const avgWeight = session.items.length > 0 ? Math.round(session.total_berat / session.items.length) : 0;
+        
+        return `
+          <div class="border ${isCurrentSession ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 bg-white'} rounded-xl p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="font-semibold text-slate-800">${session.customer || 'Tanpa Nama Customer'}</h3>
+                  ${isCurrentSession ? '<span class="px-2 py-0.5 bg-indigo-500 text-white text-xs rounded-full">Aktif</span>' : ''}
+                </div>
+                <div class="grid sm:grid-cols-2 gap-2 text-sm text-slate-600">
+                  <p>📅 ${formatDate(session.tanggal)}</p>
+                  <p>📦 ${session.item || '-'}</p>
+                  <p>🚚 ${session.ekspedisi || '-'}</p>
+                  <p>🚗 ${session.plat_nomor || '-'}</p>
+                  <p>✅ ${session.checker || '-'}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg mb-2">
+                  <p class="text-xs text-indigo-500">Total Berat</p>
+                  <p class="font-bold">${formatNumber(session.total_berat)}g</p>
+                  <p class="text-xs">${(session.total_berat / 1000).toFixed(2)} kg</p>
+                </div>
+                <p class="text-sm text-slate-500">${session.items.length} karung</p>
+                <p class="text-xs text-slate-400">Avg: ${formatNumber(avgWeight)}g</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+              ${!isCurrentSession ? `
+                <button class="load-session-btn flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition" data-session="${session.session_id}">
+                  📂 Buka Sesi
+                </button>
+              ` : `
+                <span class="flex-1 px-3 py-2 bg-slate-100 text-slate-500 rounded-lg text-sm text-center">Sesi Aktif</span>
+              `}
+              <button class="export-session-btn px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition" data-session="${session.session_id}">
+                📊 Excel
+              </button>
+              <button class="delete-session-btn px-3 py-2 bg-rose-100 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-200 transition" data-session="${session.session_id}">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add event listeners
+      historyList.querySelectorAll('.load-session-btn').forEach(btn => {
+        btn.onclick = () => loadSession(btn.dataset.session);
+      });
+      historyList.querySelectorAll('.export-session-btn').forEach(btn => {
+        btn.onclick = () => exportSessionToExcel(btn.dataset.session);
+      });
+      historyList.querySelectorAll('.delete-session-btn').forEach(btn => {
+        btn.onclick = () => deleteSession(btn.dataset.session);
+      });
+    }
+
+    // Load a saved session
+    function loadSession(sessionId) {
+      const sessionData = allData.filter(d => d.session_id === sessionId);
+      if (sessionData.length === 0) {
+        showToast('Sesi tidak ditemukan', 'error');
+        return;
+      }
+      
+      currentSessionId = sessionId;
+      saveSessionId(sessionId);
+      
+      // Restore session info from first item
+      const firstItem = sessionData[0];
+      $('tgl').value = firstItem.tanggal || '';
+      $('cust').value = firstItem.customer || '';
+      $('item').value = firstItem.item || '';
+      $('ekspedisi').value = firstItem.ekspedisi || '';
+      $('checker').value = firstItem.checker || '';
+      $('platnomor').value = firstItem.plat_nomor || '';
+      saveSessionInfo();
+      
+      renderTable();
+      switchTab('input');
+      showToast('Sesi berhasil dimuat', 'success');
+    }
+
+    // Export specific session to Excel
+    function exportSessionToExcel(sessionId) {
+      const sessionData = allData.filter(d => d.session_id === sessionId).sort((a, b) => a.nomor_urut - b.nomor_urut);
+      if (sessionData.length === 0) {
+        showToast('Tidak ada data untuk diexport', 'error');
+        return;
+      }
+      
+      exportDataToExcel(sessionData, sessionId);
+    }
+
+    // Delete entire session
+    async function deleteSession(sessionId) {
+      const sessionData = allData.filter(d => d.session_id === sessionId);
+      const isCurrentSession = sessionId === currentSessionId;
+      
+      showConfirm(
+        'Hapus Sesi',
+        `Yakin ingin menghapus sesi ini dengan ${sessionData.length} data karung? Tindakan ini tidak dapat dibatalkan.`,
+        async () => {
+          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+          for (const item of sessionData) {
+            await sdk.delete(item);
+          }
+          
+          if (isCurrentSession) {
+            currentSessionId = generateSessionId();
+            saveSessionId(currentSessionId);
+            clearSessionInfo();
+            $('tgl').value = new Date().toISOString().split('T')[0];
+            $('cust').value = '';
+            $('item').value = '';
+            $('ekspedisi').value = '';
+            $('checker').value = '';
+            $('platnomor').value = '';
+          }
+          
+          showToast('Sesi berhasil dihapus', 'success');
+          renderSessionHistory();
+        }
+      );
+    }
+
+    function handleEdit(backendId) {
+      const item = allData.find(d => d.__backendId === backendId);
+      if (!item) return;
+
+      const dialog = $('confirmDialog');
+      dialog.innerHTML = `
+        <div class="confirm-overlay">
+          <div class="confirm-box">
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Edit Berat Karung #${item.nomor_urut}</h3>
+            <p class="text-slate-600 mb-4">Masukkan berat baru:</p>
+            <div class="relative mb-6">
+              <input type="number" id="editInput" value="${item.berat_gram}" class="w-full p-3 pr-16 border border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">gram</span>
+            </div>
+            <div class="flex gap-3 justify-end">
+              <button id="editCancel" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Batal</button>
+              <button id="editSave" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2">
+                <span id="editSaveText">Simpan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      dialog.classList.remove('hidden');
+      
+      const editInput = $('editInput');
+      editInput.focus();
+      editInput.select();
+
+      $('editCancel').onclick = () => dialog.classList.add('hidden');
+      
+      editInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') $('editSave').click();
+      });
+
+      $('editSave').onclick = async () => {
+        const newValue = parseInt(editInput.value);
+        if (!newValue || newValue <= 0) {
+          showToast('Masukkan berat yang valid', 'error');
+          editInput.focus();
+          return;
+        }
+
+        const saveBtn = $('editSave');
+        saveBtn.disabled = true;
+        $('editSaveText').innerHTML = '<span class="loading-spinner"></span>';
+
+        const updatedItem = { ...item, berat_gram: newValue };
+        const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+        const result = await sdk.update(updatedItem);
+
+        saveBtn.disabled = false;
+        $('editSaveText').textContent = 'Simpan';
+
+        if (result.isOk) {
+          dialog.classList.add('hidden');
+          showToast(`Karung #${item.nomor_urut} diperbarui: ${formatNumber(newValue)}g`, 'success');
+        } else {
+          showToast('Gagal memperbarui data', 'error');
+        }
+      };
+    }
+
+    async function handleAdd() {
+      const input = $('inputGram');
+      const value = parseInt(input.value);
+      
+      if (!value || value <= 0) {
+        showToast('Masukkan berat yang valid', 'error');
+        input.focus();
+        return;
+      }
+
+      if (allData.length >= 999) {
+        showToast('Batas maksimum 999 data tercapai', 'error');
+        return;
+      }
+
+      const sessionData = getCurrentSessionData();
+      const nextNumber = sessionData.length + 1;
+
+      const tgl = $('tgl').value || new Date().toISOString().split('T')[0];
+      const cust = $('cust').value || '';
+      const item = $('item').value || '';
+      const ekspedisi = $('ekspedisi').value || '';
+      const checker = $('checker').value || '';
+      const platnomor = $('platnomor').value || '';
+
+      const btn = $('btnAdd');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span>';
+
+      const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+      const result = await sdk.create({
+        session_id: currentSessionId,
+        tanggal: tgl,
+        customer: cust,
+        item: item,
+        ekspedisi: ekspedisi,
+        checker: checker,
+        plat_nomor: platnomor,
+        berat_gram: value,
+        nomor_urut: nextNumber,
+        created_at: new Date().toISOString()
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Tambah
+      `;
+
+      if (result.isOk) {
+        input.value = '';
+        input.focus();
+        showToast(`Karung #${nextNumber} ditambahkan: ${formatNumber(value)}g`, 'success');
+      } else {
+        showToast('Gagal menyimpan data', 'error');
+      }
+    }
+
+    async function handleDelete(backendId) {
+      const item = allData.find(d => d.__backendId === backendId);
+      if (!item) return;
+
+      showConfirm(
+        'Hapus Data',
+        `Yakin ingin menghapus karung #${item.nomor_urut} (${formatNumber(item.berat_gram)}g)?`,
+        async () => {
+          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+          const result = await sdk.delete(item);
+          if (result.isOk) {
+            showToast('Data berhasil dihapus', 'success');
+          } else {
+            showToast('Gagal menghapus data', 'error');
+          }
+        }
+      );
+    }
+
+    // Save current session (update all items with current session info)
+    async function handleSaveSession() {
+      const sessionData = getCurrentSessionData();
+      if (sessionData.length === 0) {
+        showToast('Tidak ada data untuk disimpan', 'error');
+        return;
+      }
+      
+      const btn = $('btnSaveSession');
+      const btnText = $('btnSaveSessionText');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="loading-spinner"></span>';
+      
+      const tgl = $('tgl').value || new Date().toISOString().split('T')[0];
+      const cust = $('cust').value || '';
+      const item = $('item').value || '';
+      const ekspedisi = $('ekspedisi').value || '';
+      const checker = $('checker').value || '';
+      const platnomor = $('platnomor').value || '';
+      
+      const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+      
+      // Update all items in current session with latest info
+      for (const dataItem of sessionData) {
+        const updatedItem = {
+          ...dataItem,
+          tanggal: tgl,
+          customer: cust,
+          item: item,
+          ekspedisi: ekspedisi,
+          checker: checker,
+          plat_nomor: platnomor
+        };
+        await sdk.update(updatedItem);
+      }
+      
+      btn.disabled = false;
+      btnText.textContent = 'Simpan Sesi';
+      
+      saveSessionInfo();
+      showToast(`Sesi berhasil disimpan dengan ${sessionData.length} karung`, 'success');
+    }
+
+    function handleNewSession() {
+      showConfirm(
+        'Sesi Baru',
+        'Mulai sesi baru? Data sesi sebelumnya tetap tersimpan.',
+        () => {
+          currentSessionId = generateSessionId();
+          saveSessionId(currentSessionId);
+          
+          $('tgl').value = new Date().toISOString().split('T')[0];
+          $('cust').value = '';
+          $('item').value = '';
+          $('ekspedisi').value = '';
+          $('checker').value = '';
+          $('platnomor').value = '';
+          
+          clearSessionInfo();
+          saveSessionId(currentSessionId);
+          saveSessionInfo();
+          
+          renderTable();
+          showToast('Sesi baru dimulai', 'success');
+        }
+      );
+    }
+
+    async function handleResetAll() {
+      const sessionData = getCurrentSessionData();
+      if (sessionData.length === 0) {
+        showToast('Tidak ada data untuk dihapus', 'info');
+        return;
+      }
+
+      showConfirm(
+        'Hapus Semua Data',
+        `Yakin ingin menghapus ${sessionData.length} data karung dari sesi ini? Tindakan ini tidak dapat dibatalkan.`,
+        async () => {
+          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
+          for (const item of sessionData) {
+            await sdk.delete(item);
+          }
+          showToast('Semua data sesi dihapus', 'success');
+        }
+      );
+    }
+
+    function exportDataToExcel(sessionData, sessionId) {
+      const firstItem = sessionData[0];
+      const weights = sessionData.map(d => d.berat_gram);
+      const total = weights.reduce((a, b) => a + b, 0);
+      const avg = Math.round(total / weights.length);
+
+      const numColumns = Math.ceil(sessionData.length / ROWS_PER_COLUMN);
+      const columns = [];
+      for (let i = 0; i < numColumns; i++) {
+        const start = i * ROWS_PER_COLUMN;
+        const end = Math.min(start + ROWS_PER_COLUMN, sessionData.length);
+        columns.push(sessionData.slice(start, end));
+      }
+
+      const wsData = [
+        ['EASY TALLY SHEET - PT. CHAROEN POKPHAND INDONESIA FOOD DIVISION - SRAGEN'],
+        [],
+        ['Tanggal', firstItem.tanggal || '-', '', 'Customer', firstItem.customer || '-'],
+        ['Item', firstItem.item || '-', '', 'Ekspedisi', firstItem.ekspedisi || '-'],
+        ['Checker', firstItem.checker || '-', '', 'Plat Nomor', firstItem.plat_nomor || '-'],
+        []
+      ];
+
+      const headerRow = [];
+      for (let col = 0; col < numColumns; col++) {
+        const startNum = col * ROWS_PER_COLUMN + 1;
+        const endNum = Math.min(startNum + ROWS_PER_COLUMN - 1, sessionData.length);
+        headerRow.push(`No`, `Berat (g) [${startNum}-${endNum}]`);
+        if (col < numColumns - 1) headerRow.push('');
+      }
+      wsData.push(headerRow);
+
+      for (let row = 0; row < ROWS_PER_COLUMN; row++) {
+        const dataRow = [];
+        for (let col = 0; col < numColumns; col++) {
+          if (columns[col] && columns[col][row]) {
+            const item = columns[col][row];
+            const nomor = col * ROWS_PER_COLUMN + row + 1;
+            dataRow.push(nomor, item.berat_gram);
+          } else {
+            dataRow.push('', '');
+          }
+          if (col < numColumns - 1) dataRow.push('');
+        }
+        if (dataRow.some(cell => cell !== '')) {
+          wsData.push(dataRow);
+        }
+      }
+
+      wsData.push([]);
+      wsData.push(['RINGKASAN']);
+      wsData.push(['Total Karung', sessionData.length]);
+      wsData.push(['Total Berat', `${formatNumber(total)} gram`, '', 'Kg', (total/1000).toFixed(2)]);
+      wsData.push(['Rata-rata', `${formatNumber(avg)} gram`]);
+      wsData.push(['Minimum', `${formatNumber(Math.min(...weights))} gram`]);
+      wsData.push(['Maximum', `${formatNumber(Math.max(...weights))} gram`]);
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      const colWidths = [];
+      for (let col = 0; col < numColumns; col++) {
+        colWidths.push({ wch: 6 });
+        colWidths.push({ wch: 18 });
+        if (col < numColumns - 1) colWidths.push({ wch: 2 });
+      }
+      ws['!cols'] = colWidths;
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Tally Sheet');
+      
+      const fileName = `TallySheet_${firstItem.tanggal || 'data'}_${sessionId}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      showToast('Excel berhasil diexport', 'success');
+    }
+
+    function exportToExcel() {
+      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      if (sessionData.length === 0) {
+        showToast('Tidak ada data untuk diexport', 'error');
+        return;
+      }
+      exportDataToExcel(sessionData, currentSessionId);
+    }
+
+    function exportToPDF() {
+      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      if (sessionData.length === 0) {
+        showToast('Tidak ada data untuk diexport', 'error');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const firstItem = sessionData[0];
+      const weights = sessionData.map(d => d.berat_gram);
+      const total = weights.reduce((a, b) => a + b, 0);
+      const avg = Math.round(total / weights.length);
+
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TALLY SHEET LOADING PER KARUNG', 105, 20, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      let y = 35;
+      const info = [
+        ['Tanggal', firstItem.tanggal || '-'],
+        ['Customer', firstItem.customer || '-'],
+        ['Item', firstItem.item || '-'],
+        ['Ekspedisi', firstItem.ekspedisi || '-'],
+        ['Checker', firstItem.checker || '-'],
+        ['Plat Nomor', firstItem.plat_nomor || '-']
+      ];
+
+      info.forEach(([label, value]) => {
+        doc.text(`${label}: ${value}`, 14, y);
+        y += 6;
+      });
+
+      const tableData = sessionData.map((d, i) => [i + 1, formatNumber(d.berat_gram)]);
+      
+      doc.autoTable({
+        startY: y + 5,
+        head: [['No', 'Berat (gram)']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [79, 70, 229] },
+        margin: { left: 14, right: 14 }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total: ${formatNumber(total)} gram (${(total/1000).toFixed(2)} kg)`, 14, finalY);
+      doc.text(`Rata-rata: ${formatNumber(avg)} gram`, 14, finalY + 6);
+      doc.text(`Min: ${formatNumber(Math.min(...weights))} gram | Max: ${formatNumber(Math.max(...weights))} gram`, 14, finalY + 12);
+
+      const fileName = `TallySheet_${firstItem.tanggal || 'data'}_${currentSessionId}.pdf`;
+      doc.save(fileName);
+      showToast('PDF berhasil diexport', 'success');
+    }
+
+    const dataHandler = {
+      onDataChanged(data) {
+        allData = data;
+        renderTable();
+        updateStats();
+      }
+    };
+
+    const localFallbackSdk = {
+      _data: [],
+      _handler: null,
+      _idCounter: 1,
+      
+      async init(handler) {
+        this._handler = handler;
+        try {
+          const saved = localStorage.getItem('tallysheet_data');
+          if (saved) this._data = JSON.parse(saved);
+        } catch (e) {}
+        this._notify();
+        return { isOk: true, isError: false };
+      },
+      
+      async create(record) {
+        const newRecord = { ...record, __backendId: 'local_' + (this._idCounter++) };
+        this._data.push(newRecord);
+        this._save();
+        this._notify();
+        return { isOk: true, isError: false };
+      },
+      
+      async update(record) {
+        const index = this._data.findIndex(d => d.__backendId === record.__backendId);
+        if (index >= 0) {
+          this._data[index] = { ...record };
+          this._save();
+          this._notify();
+        }
+        return { isOk: true, isError: false };
+      },
+      
+      async delete(record) {
+        this._data = this._data.filter(d => d.__backendId !== record.__backendId);
+        this._save();
+        this._notify();
+        return { isOk: true, isError: false };
+      },
+      
+      _save() {
+        try { localStorage.setItem('tallysheet_data', JSON.stringify(this._data)); } catch (e) {}
+      },
+      
+      _notify() {
+        if (this._handler) this._handler.onDataChanged([...this._data]);
+      }
+    };
+
+    async function onConfigChange(cfg) {
+      config = { ...defaultConfig, ...cfg };
+      
+      const titleEl = $('app-title');
+      const companyEl = $('company-name');
+      
+      if (titleEl) titleEl.textContent = config.app_title || defaultConfig.app_title;
+      if (companyEl) companyEl.textContent = config.company_name || defaultConfig.company_name;
+    }
+
+    function mapToCapabilities(cfg) {
+      return {
+        recolorables: [
+          {
+            get: () => cfg.background_color || defaultConfig.background_color,
+            set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+          },
+          {
+            get: () => cfg.primary_color || defaultConfig.primary_color,
+            set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }
+          },
+          {
+            get: () => cfg.text_color || defaultConfig.text_color,
+            set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(cfg) {
+      return new Map([
+        ['app_title', cfg.app_title || defaultConfig.app_title],
+        ['company_name', cfg.company_name || defaultConfig.company_name]
+      ]);
+    }
+
+    async function init() {
+      $('tgl').value = new Date().toISOString().split('T')[0];
+      restoreSessionInfo();
+      saveSessionId(currentSessionId);
+
+      // Tab navigation
+      $('tabInput').onclick = () => switchTab('input');
+      $('tabHistory').onclick = () => switchTab('history');
+
+      // Event listeners
+      $('btnAdd').onclick = handleAdd;
+      $('inputGram').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAdd();
+      });
+      $('btnSaveSession').onclick = handleSaveSession;
+      $('btnNewSession').onclick = handleNewSession;
+      $('btnReset').onclick = handleResetAll;
+      $('btnExcel').onclick = exportToExcel;
+      $('btnPDF').onclick = exportToPDF;
+
+      const sessionInputs = ['tgl', 'cust', 'item', 'ekspedisi', 'checker', 'platnomor'];
+      sessionInputs.forEach(id => {
+        $(id).addEventListener('input', saveSessionInfo);
+        $(id).addEventListener('change', saveSessionInfo);
+      });
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+
+      const sdk = window.dataSdk || localFallbackSdk;
+      window.activeSdk = sdk;
+      
+      const result = await sdk.init(dataHandler);
+      if (!result.isOk) {
+        showToast('Gagal menghubungkan ke database', 'error');
+      } else if (!window.dataSdk) {
+        showToast('Mode lokal - data disimpan di browser', 'info');
+      }
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9aee7a1d547bdf74',t:'MTc2NTg5MTIxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
