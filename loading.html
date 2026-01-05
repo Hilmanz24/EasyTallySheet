@@ -3,10 +3,10 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easy Tally Sheet - PT. CPI Food Division Sragen</title>
+  <title>Easy Tally Sheet</title>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="/_sdk/data_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,6 +16,9 @@
       box-sizing: border-box;
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
+    * {
+      box-sizing: border-box;
+    }
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -24,222 +27,310 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+    
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 24px;
-      border-radius: 8px;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 14px;
       color: white;
-      font-weight: 500;
-      z-index: 1000;
-      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 9999;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1), toastFadeOut 0.4s ease 2.6s forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .toast-success { background: #10b981; }
-    .toast-error { background: #ef4444; }
-    .toast-info { background: #3b82f6; }
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
+    .toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+    .toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .toast-info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .toast-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    
+    @keyframes toastSlideIn {
+      from { transform: translateX(120%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
+    @keyframes toastFadeOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(30px); }
     }
+    
     .confirm-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 9998;
+      animation: overlayFadeIn 0.3s ease;
     }
     .confirm-box {
       background: white;
-      padding: 24px;
-      border-radius: 12px;
-      max-width: 400px;
+      padding: 32px;
+      border-radius: 24px;
+      max-width: 420px;
       width: 90%;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+      box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+      animation: boxSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    @keyframes overlayFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes boxSlideUp {
+      from { transform: translateY(30px) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    
     .loading-spinner {
       display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #fff;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid currentColor;
       border-radius: 50%;
       border-top-color: transparent;
       animation: spin 0.8s linear infinite;
     }
-    .loading-spinner-dark {
-      border-color: #6366f1;
-      border-top-color: transparent;
-    }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
     .page { display: none; }
-    .page.active { display: block; }
-    .tab-btn { transition: all 0.2s; }
+    .page.active { display: block; animation: pageFadeIn 0.3s ease; }
+    @keyframes pageFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .tab-btn {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
     .tab-btn.active {
-      background: #4f46e5;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
       color: white;
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+      transform: translateY(-2px);
+    }
+    .tab-btn:hover:not(.active) {
+      background: #e0e7ff;
+      transform: translateY(-1px);
+    }
+    
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+    }
+    
+    .btn-press:active {
+      transform: scale(0.97);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .pulse-dot {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .row-new {
+      animation: rowHighlight 1s ease;
+    }
+    @keyframes rowHighlight {
+      0% { background-color: #c7d2fe; }
+      100% { background-color: transparent; }
+    }
+    
+    .input-glow:focus {
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
- <body class="h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-auto">
+ <body class="h-full bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-100 overflow-auto">
   <div class="min-h-full w-full p-4 md:p-6">
-   <div class="max-w-5xl mx-auto"><!-- Header -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+   <div class="max-w-7xl mx-auto"><!-- Header -->
+    <header class="bg-white rounded-3xl shadow-xl shadow-indigo-100/50 p-6 mb-6 card-hover">
      <div class="flex items-center justify-between flex-wrap gap-4">
       <div>
-       <h1 id="app-title" class="text-2xl md:text-3xl font-bold text-indigo-700">Easy Tally Sheet</h1>
-       <p id="company-name" class="text-slate-500 mt-1">PT. Charoen Pokphand Indonesia Food Division - Sragen</p>
+       <h1 id="app-title" class="text-2xl md:text-3xl font-extrabold gradient-text">Easy Tally Sheet</h1>
+       <p id="company-name" class="text-slate-500 mt-1 font-medium">PT. Charoen Pokphand Indonesia Food Division - Sragen</p>
       </div>
-      <div class="flex items-center gap-2"><span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700"> <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> Online </span>
+      <div class="flex items-center gap-3"><span id="sessionBadge" class="hidden"></span> <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-emerald-50 to-green-100 text-emerald-700 shadow-sm"> <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2 pulse-dot"></span> Online </span>
       </div>
-     </div><!-- Navigation Tabs -->
-     <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100"><button id="tabInput" class="tab-btn active px-4 py-2 rounded-lg font-medium text-sm bg-slate-100 text-slate-600 hover:bg-slate-200"> 📝 Input Data </button> <button id="tabHistory" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm bg-slate-100 text-slate-600 hover:bg-slate-200"> 📋 Riwayat Sesi </button>
      </div>
-    </div><!-- Page 1: Input Data -->
-    <div id="pageInput" class="page active">
-     <div class="grid lg:grid-cols-3 gap-6"><!-- Left Column - Input Form -->
-      <div class="lg:col-span-2 space-y-6"><!-- Session Info Card -->
-       <div class="bg-white rounded-2xl shadow-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-         <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg> Info Sesi</h2>
+     <nav class="flex gap-3 mt-6 pt-6 border-t border-slate-100" aria-label="Main navigation"><button id="tabInput" class="tab-btn active px-6 py-3 rounded-xl font-semibold text-sm bg-slate-100 text-slate-600 btn-press"> ⚖️ Input Data </button> <button id="tabHistory" class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm bg-slate-100 text-slate-600 btn-press"> 📋 Riwayat Sesi </button>
+     </nav>
+    </header>
+    <main><!-- Page 1: Input Data -->
+     <div id="pageInput" class="page active">
+      <div class="grid lg:grid-cols-3 gap-6"><!-- Left Column -->
+       <div class="lg:col-span-2 space-y-6"><!-- Session Info Card -->
+        <section class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6 card-hover">
+         <h2 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-xl shadow-sm">📋</span> Info Sesi</h2>
+         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div><label for="tgl" class="block text-sm font-semibold text-slate-600 mb-2">Tanggal</label> <input id="tgl" type="date" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow font-medium">
+          </div>
+          <div><label for="cust" class="block text-sm font-semibold text-slate-600 mb-2">Customer</label> <input id="cust" type="text" placeholder="Nama customer" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div>
+          <div><label for="item" class="block text-sm font-semibold text-slate-600 mb-2">Item</label>
+           <div class="relative"><select id="itemSelect" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow appearance-none cursor-pointer pr-10"> <option value="">-- Pilih Item --</option> <option value="__new__">➕ Tambah Item Baru...</option> </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+           </div><input id="item" type="hidden" value="">
+          </div>
+          <div><label for="nomordo" class="block text-sm font-semibold text-slate-600 mb-2">Nomor DO</label> <input id="nomordo" type="text" placeholder="Nomor Delivery Order" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div>
+          <div><label for="ekspedisi" class="block text-sm font-semibold text-slate-600 mb-2">Ekspedisi</label> <input id="ekspedisi" type="text" placeholder="Nama ekspedisi" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div>
+          <div><label for="checker" class="block text-sm font-semibold text-slate-600 mb-2">Checker</label> <input id="checker" type="text" placeholder="Nama checker" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div>
+          <div><label for="platnomor" class="block text-sm font-semibold text-slate-600 mb-2">Plat Nomor</label> <input id="platnomor" type="text" placeholder="Plat nomor kendaraan" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div>
+          <div><label for="satuan" class="block text-sm font-semibold text-slate-600 mb-2">Mode Input</label>
+           <div class="relative"><select id="satuan" class="w-full p-3.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow appearance-none cursor-pointer pr-10"> <option value="berat">⚖️ Input Berat</option> <option value="jumlah_karung">📦 Input Jumlah Karung/Box</option> </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+           </div>
+          </div>
+         </div>
+        </section><!-- Weight Input Card -->
+        <section class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6 card-hover">
+         <h2 id="inputTitle" class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-3"><span id="inputIcon" class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-xl shadow-sm">⚖️</span> <span id="inputTitleText">Input Berat</span></h2>
+         <p id="inputHint" class="text-sm text-slate-500 mb-4 hidden">💡 Masukkan jumlah karung/box yang akan ditambahkan</p><!-- Mode Berat -->
+         <div id="inputBeratContainer" class="flex gap-3 flex-wrap">
+          <div class="flex-1 min-w-[180px] relative"><label for="inputGram" class="sr-only">Berat dalam gram</label> <input type="number" id="inputGram" placeholder="Masukkan berat" class="w-full p-4 border-2 border-slate-200 rounded-2xl text-xl font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-slate-50 focus:bg-white input-glow">
+          </div><button id="btnAdd" class="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white rounded-2xl font-bold hover:from-indigo-700 hover:via-purple-700 hover:to-violet-700 btn-press transition-all flex items-center gap-3 shadow-xl shadow-indigo-200/50 text-lg">
+           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+           </svg> Tambah </button>
+         </div><!-- Mode Jumlah Karung -->
+         <div id="inputJumlahContainer" class="hidden">
+          <div class="flex gap-3 flex-wrap items-end">
+           <div class="flex-1 min-w-[180px]"><label for="inputJumlahKarung" class="block text-sm font-semibold text-slate-600 mb-2">Jumlah Karung/Box</label> <input type="number" id="inputJumlahKarung" placeholder="Contoh: 10" min="1" class="w-full p-4 border-2 border-indigo-300 rounded-2xl text-xl font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-indigo-50 focus:bg-white input-glow text-center">
+           </div><button id="btnAddJumlah" class="px-8 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white rounded-2xl font-bold hover:from-indigo-700 hover:via-purple-700 hover:to-violet-700 btn-press transition-all flex items-center gap-3 shadow-xl shadow-indigo-200/50 text-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg> Tambah </button>
+          </div>
+          <p class="text-xs text-slate-400 mt-3">📦 Contoh: Input 10 = menambahkan 10 karung/box</p>
+         </div>
+        </section><!-- Data Table Card -->
+        <section class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6">
+         <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <h2 id="tableTitle" class="text-lg font-bold text-slate-800 flex items-center gap-3"><span id="tableIcon" class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-xl shadow-sm">⚖️</span> <span id="tableTitleText">Data Berat</span></h2>
+          <div class="flex items-center gap-2"><span id="modeBadge" class="text-xs font-bold px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700">⚖️ Mode Berat</span> <span id="recordCount" class="text-sm font-bold text-slate-500 bg-gradient-to-r from-slate-100 to-slate-200 px-4 py-2 rounded-full shadow-inner">0 data</span>
+          </div>
+         </div><!-- Empty State -->
+         <div id="emptyState" class="py-20 text-center">
+          <div class="w-24 h-24 mx-auto mb-5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl flex items-center justify-center shadow-inner">
+           <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+           </svg>
+          </div>
+          <p class="text-slate-500 font-bold text-lg">Belum ada data</p>
+          <p class="text-slate-400 text-sm mt-2">Masukkan data dan klik Tambah untuk memulai</p>
+         </div><!-- Items Container -->
+         <div id="itemsContainer" class="hidden space-y-6"></div>
+        </section>
+       </div><!-- Right Column - Stats & Actions -->
+       <aside class="space-y-6"><!-- Statistics Card -->
+        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 rounded-3xl shadow-2xl shadow-indigo-300/40 p-6 text-white card-hover">
+         <h3 class="text-lg font-bold mb-5 flex items-center gap-2">📊 Statistik Sesi</h3>
+         <div class="space-y-4">
+          <div class="stat-card rounded-2xl p-5">
+           <p id="statMainLabel" class="text-white/70 text-sm font-medium">Total Berat (Semua Item)</p>
+           <p class="text-4xl font-extrabold mt-1"><span id="tot">0</span></p>
+           <p id="statKgRow" class="text-white/70 text-sm mt-2 font-medium"><span id="totKg">0.00</span> kg</p>
+          </div>
+          <div id="statDetailsRow" class="grid grid-cols-3 gap-3">
+           <div class="stat-card rounded-xl p-4 text-center">
+            <p class="text-white/70 text-xs font-medium">Rata-rata</p>
+            <p class="text-xl font-extrabold mt-1"><span id="avg">0</span></p>
+           </div>
+           <div class="stat-card rounded-xl p-4 text-center">
+            <p class="text-white/70 text-xs font-medium">Minimum</p>
+            <p class="text-xl font-extrabold mt-1"><span id="min">0</span></p>
+           </div>
+           <div class="stat-card rounded-xl p-4 text-center">
+            <p class="text-white/70 text-xs font-medium">Maximum</p>
+            <p class="text-xl font-extrabold mt-1"><span id="max">0</span></p>
+           </div>
+          </div>
+          <div id="itemStats" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar"></div>
+         </div>
+        </div><!-- Export Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6 card-hover">
+         <h3 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">📥 Export Data</h3>
+         <div class="space-y-3"><button id="btnExcel" class="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-green-700 btn-press transition-all shadow-lg shadow-emerald-100/50">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+           </svg> Export Excel </button> <button id="btnPDF" class="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-xl font-bold hover:from-rose-600 hover:to-red-700 btn-press transition-all shadow-lg shadow-rose-100/50">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+           </svg> Export PDF </button>
+         </div>
+        </div><!-- Session Actions Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6 card-hover">
+         <h3 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">⚙️ Manajemen Sesi</h3>
+         <div class="space-y-3"><button id="btnSaveSession" class="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-xl font-bold hover:from-sky-600 hover:to-blue-700 btn-press transition-all shadow-lg shadow-sky-100/50">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+           </svg><span id="btnSaveSessionText">Simpan Sesi</span> </button> <button id="btnNewSession" class="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 btn-press transition-all shadow-lg shadow-indigo-100/50">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+           </svg> Sesi Baru </button> <button id="btnReset" class="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 rounded-xl font-bold hover:from-slate-200 hover:to-slate-300 btn-press transition-all">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+           </svg> Hapus Semua </button>
+         </div>
         </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Tanggal</label> <input id="tgl" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Customer</label> <input id="cust" type="text" placeholder="Nama customer" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Item</label> <input id="item" type="text" placeholder="Nama item" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Ekspedisi</label> <input id="ekspedisi" type="text" placeholder="Nama ekspedisi" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Checker</label> <input id="checker" type="text" placeholder="Nama checker" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-         <div><label class="block text-sm font-medium text-slate-600 mb-1">Plat Nomor</label> <input id="platnomor" type="text" placeholder="Plat nomor kendaraan" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-         </div>
-        </div>
-       </div><!-- Weight Input Card -->
-       <div class="bg-white rounded-2xl shadow-lg p-6">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-         </svg> Input Berat Karung</h2>
-        <div class="flex gap-3">
-         <div class="flex-1 relative"><input type="number" id="inputGram" placeholder="Masukkan berat" class="w-full p-4 pr-16 border border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"> <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">gram</span>
-         </div><button id="btnAdd" class="px-6 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 active:scale-95 transition flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg> Tambah </button>
-        </div>
-       </div><!-- Data Table Card -->
-       <div class="bg-white rounded-2xl shadow-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-         <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg> Data Karung</h2><span id="recordCount" class="text-sm text-slate-500">0 karung</span>
-        </div>
-        <div id="emptyState" class="py-12 text-center text-slate-400">
-         <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-         </svg> Belum ada data karung
-        </div>
-        <div id="multiColumnContainer" class="hidden overflow-x-auto">
-         <div id="columnsWrapper" class="flex gap-4 min-w-max">
-         </div>
-        </div>
+       </aside>
+      </div>
+     </div><!-- Page 2: History -->
+     <div id="pageHistory" class="page">
+      <section class="bg-white rounded-3xl shadow-xl shadow-indigo-100/30 p-6">
+       <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-3"><span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-2xl shadow-sm">📋</span> Riwayat Sesi Tersimpan</h2><span id="sessionCount" class="text-sm font-bold text-slate-500 bg-gradient-to-r from-slate-100 to-slate-200 px-5 py-2.5 rounded-full shadow-inner">0 sesi</span>
        </div>
-      </div><!-- Right Column - Stats & Actions -->
-      <div class="space-y-6"><!-- Statistics Card -->
-       <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white">
-        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-         </svg> Statistik</h2>
-        <div class="space-y-4">
-         <div class="bg-white/10 rounded-xl p-4">
-          <p class="text-white/70 text-sm">Total Berat</p>
-          <p class="text-2xl font-bold"><span id="tot">0</span> <span class="text-lg font-normal">gram</span></p>
-          <p class="text-white/70 text-sm mt-1"><span id="totKg">0</span> kg</p>
-         </div>
-         <div class="grid grid-cols-3 gap-3">
-          <div class="bg-white/10 rounded-xl p-3 text-center">
-           <p class="text-white/70 text-xs">Rata-rata</p>
-           <p class="text-lg font-semibold"><span id="avg">0</span></p>
-           <p class="text-white/60 text-xs">gram</p>
-          </div>
-          <div class="bg-white/10 rounded-xl p-3 text-center">
-           <p class="text-white/70 text-xs">Min</p>
-           <p class="text-lg font-semibold"><span id="min">0</span></p>
-           <p class="text-white/60 text-xs">gram</p>
-          </div>
-          <div class="bg-white/10 rounded-xl p-3 text-center">
-           <p class="text-white/70 text-xs">Max</p>
-           <p class="text-lg font-semibold"><span id="max">0</span></p>
-           <p class="text-white/60 text-xs">gram</p>
-          </div>
-         </div>
+       <div id="historyEmpty" class="py-20 text-center">
+        <div class="w-24 h-24 mx-auto mb-5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl flex items-center justify-center shadow-inner">
+         <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+         </svg>
         </div>
-       </div><!-- Actions Card -->
-       <div class="bg-white rounded-2xl shadow-lg p-6">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-         </svg> Export Data</h2>
-        <div class="space-y-3"><button id="btnExcel" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 active:scale-98 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg> Export Excel </button> <button id="btnPDF" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 active:scale-98 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg> Export PDF </button>
-        </div>
-       </div><!-- Session Actions Card -->
-       <div class="bg-white rounded-2xl shadow-lg p-6">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-         <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-         </svg> Sesi</h2>
-        <div class="space-y-3"><button id="btnSaveSession" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 active:scale-98 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-          </svg><span id="btnSaveSessionText">Simpan Sesi</span> </button> <button id="btnNewSession" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-500 text-white rounded-xl font-medium hover:bg-indigo-600 active:scale-98 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg> Sesi Baru </button> <button id="btnReset" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 active:scale-98 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg> Hapus Semua Data </button>
-        </div>
+        <p class="text-lg font-bold text-slate-500">Belum ada sesi tersimpan</p>
+        <p class="text-sm text-slate-400 mt-2">Klik "Simpan Sesi" untuk menyimpan data Anda</p>
        </div>
-      </div>
+       <div id="historyList" class="hidden space-y-4 max-h-[700px] overflow-y-auto hide-scrollbar pr-2"></div>
+      </section>
      </div>
-    </div><!-- Page 2: Session History -->
-    <div id="pageHistory" class="page">
-     <div class="bg-white rounded-2xl shadow-lg p-6">
-      <div class="flex items-center justify-between mb-6">
-       <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
-        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg> Riwayat Sesi Tersimpan</h2><span id="sessionCount" class="text-sm text-slate-500">0 sesi</span>
-      </div>
-      <div id="historyEmpty" class="py-16 text-center text-slate-400">
-       <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-       </svg>
-       <p class="text-lg font-medium">Belum ada sesi tersimpan</p>
-       <p class="text-sm mt-1">Klik "Simpan Sesi" di halaman Input Data untuk menyimpan</p>
-      </div>
-      <div id="historyList" class="hidden space-y-4"><!-- Session cards will be rendered here -->
-      </div>
-     </div>
-    </div>
+    </main>
    </div>
-  </div><!-- Confirm Dialog Container -->
+  </div>
   <div id="confirmDialog" class="hidden"></div>
   <script>
-    // Default config
     const defaultConfig = {
       app_title: 'Easy Tally Sheet',
       company_name: 'PT. Charoen Pokphand Indonesia Food Division - Sragen',
       primary_color: '#4f46e5',
-      secondary_color: '#7c3aed',
-      accent_color: '#10b981',
       text_color: '#1e293b',
       background_color: '#f8fafc'
     };
@@ -247,8 +338,9 @@
     let config = { ...defaultConfig };
     let allData = [];
     let currentSessionId = loadSessionId() || generateSessionId();
+    const ROWS_PER_COLUMN = 30;
+    const MAX_RECORDS = 999;
 
-    // Helper functions
     function $(id) { return document.getElementById(id); }
     
     function generateSessionId() {
@@ -266,22 +358,22 @@
     function loadSessionInfo() {
       try {
         const saved = localStorage.getItem('tallysheet_session_info');
-        if (saved) return JSON.parse(saved);
-      } catch (e) {}
-      return null;
+        return saved ? JSON.parse(saved) : null;
+      } catch (e) { return null; }
     }
 
     function saveSessionInfo() {
       try {
-        const info = {
+        localStorage.setItem('tallysheet_session_info', JSON.stringify({
           tanggal: $('tgl').value,
           customer: $('cust').value,
           item: $('item').value,
           ekspedisi: $('ekspedisi').value,
           checker: $('checker').value,
-          plat_nomor: $('platnomor').value
-        };
-        localStorage.setItem('tallysheet_session_info', JSON.stringify(info));
+          plat_nomor: $('platnomor').value,
+          nomor_do: $('nomordo').value,
+          satuan: $('satuan').value
+        }));
       } catch (e) {}
     }
 
@@ -294,6 +386,11 @@
         if (info.ekspedisi) $('ekspedisi').value = info.ekspedisi;
         if (info.checker) $('checker').value = info.checker;
         if (info.plat_nomor) $('platnomor').value = info.plat_nomor;
+        if (info.nomor_do) $('nomordo').value = info.nomor_do;
+        if (info.satuan) {
+          $('satuan').value = info.satuan;
+          updateInputMode();
+        }
       }
     }
 
@@ -304,27 +401,91 @@
       } catch (e) {}
     }
 
+    function formatNumber(num) {
+      return num.toLocaleString('id-ID');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      try {
+        return new Date(dateStr).toLocaleDateString('id-ID', { 
+          day: '2-digit', 
+          month: 'short', 
+          year: 'numeric' 
+        });
+      } catch (e) { return dateStr; }
+    }
+
+    function getCurrentMode() {
+      return $('satuan').value;
+    }
+
+    function isJumlahKarungMode() {
+      return getCurrentMode() === 'jumlah_karung';
+    }
+
+    function updateInputMode() {
+      const mode = getCurrentMode();
+      const beratContainer = $('inputBeratContainer');
+      const jumlahContainer = $('inputJumlahContainer');
+      const inputIcon = $('inputIcon');
+      const inputTitleText = $('inputTitleText');
+      const inputHint = $('inputHint');
+      const tableIcon = $('tableIcon');
+      const tableTitleText = $('tableTitleText');
+      const modeBadge = $('modeBadge');
+
+      if (mode === 'jumlah_karung') {
+        beratContainer.classList.add('hidden');
+        jumlahContainer.classList.remove('hidden');
+        inputIcon.textContent = '📦';
+        inputTitleText.textContent = 'Input Jumlah Karung/Box';
+        inputHint.classList.remove('hidden');
+        
+        tableIcon.textContent = '📦';
+        tableTitleText.textContent = 'Data Karung/Box';
+        modeBadge.textContent = '📦 Mode Karung';
+        modeBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full bg-purple-100 text-purple-700';
+      } else {
+        beratContainer.classList.remove('hidden');
+        jumlahContainer.classList.add('hidden');
+        inputIcon.textContent = '⚖️';
+        inputTitleText.textContent = 'Input Berat';
+        inputHint.classList.add('hidden');
+        
+        tableIcon.textContent = '⚖️';
+        tableTitleText.textContent = 'Data Berat';
+        modeBadge.textContent = '⚖️ Mode Berat';
+        modeBadge.className = 'text-xs font-bold px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700';
+      }
+
+      updateStats();
+      renderTable();
+    }
+
     function showToast(message, type = 'info') {
-      const existingToast = document.querySelector('.toast');
-      if (existingToast) existingToast.remove();
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      
+      const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
       
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
-      toast.textContent = message;
+      toast.innerHTML = `<span>${icons[type] || ''}</span><span>${message}</span>`;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     }
 
-    function showConfirm(title, message, onConfirm) {
+    function showConfirm(title, message, onConfirm, confirmText = 'Ya, Lanjutkan', isDanger = true) {
       const dialog = $('confirmDialog');
       dialog.innerHTML = `
         <div class="confirm-overlay">
           <div class="confirm-box">
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">${title}</h3>
-            <p class="text-slate-600 mb-6">${message}</p>
+            <h3 class="text-xl font-extrabold text-slate-800 mb-3">${title}</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed">${message}</p>
             <div class="flex gap-3 justify-end">
-              <button id="confirmCancel" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Batal</button>
-              <button id="confirmOk" class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition">Ya, Lanjutkan</button>
+              <button id="confirmCancel" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition btn-press">Batal</button>
+              <button id="confirmOk" class="px-6 py-3 ${isDanger ? 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700' : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700'} text-white rounded-xl font-bold transition btn-press">${confirmText}</button>
             </div>
           </div>
         </div>
@@ -338,21 +499,6 @@
       };
     }
 
-    function formatNumber(num) {
-      return num.toLocaleString('id-ID');
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '-';
-      try {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-      } catch (e) {
-        return dateStr;
-      }
-    }
-
-    // Tab navigation
     function switchTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
@@ -371,7 +517,19 @@
       return allData.filter(d => d.session_id === currentSessionId);
     }
 
-    // Get unique sessions from data
+    function getCurrentModeData() {
+      const mode = getCurrentMode();
+      return allData.filter(d => d.session_id === currentSessionId && d.satuan === mode);
+    }
+
+    function getBeratData() {
+      return allData.filter(d => d.session_id === currentSessionId && d.satuan === 'berat');
+    }
+
+    function getKarungData() {
+      return allData.filter(d => d.session_id === currentSessionId && d.satuan === 'jumlah_karung');
+    }
+
     function getUniqueSessions() {
       const sessionMap = new Map();
       
@@ -386,6 +544,8 @@
             ekspedisi: item.ekspedisi,
             checker: item.checker,
             plat_nomor: item.plat_nomor,
+            nomor_do: item.nomor_do,
+            satuan: item.satuan,
             items: [],
             total_berat: 0,
             created_at: item.created_at
@@ -396,7 +556,6 @@
         session.total_berat += item.berat_gram;
       });
       
-      // Sort by created_at descending
       return Array.from(sessionMap.values()).sort((a, b) => {
         const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
         const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
@@ -405,104 +564,243 @@
     }
 
     function updateStats() {
-      const sessionData = getCurrentSessionData();
-      const weights = sessionData.map(d => d.berat_gram);
+      const modeData = getCurrentModeData();
+      const beratData = getBeratData();
+      const karungData = getKarungData();
+      const isKarungMode = isJumlahKarungMode();
       
-      const total = weights.reduce((a, b) => a + b, 0);
-      const avg = weights.length ? Math.round(total / weights.length) : 0;
-      const min = weights.length ? Math.min(...weights) : 0;
-      const max = weights.length ? Math.max(...weights) : 0;
+      const statMainLabel = $('statMainLabel');
+      const statKgRow = $('statKgRow');
+      const statDetailsRow = $('statDetailsRow');
+
+      if (isKarungMode) {
+        const totalKarung = karungData.reduce((sum, d) => sum + d.berat_gram, 0);
+        
+        statMainLabel.textContent = 'Total Karung/Box';
+        $('tot').textContent = formatNumber(totalKarung);
+        statKgRow.classList.add('hidden');
+        statDetailsRow.classList.add('hidden');
+        
+        $('recordCount').textContent = `${karungData.length} entri karung`;
+      } else {
+        const weights = beratData.map(d => d.berat_gram);
+        const total = weights.reduce((a, b) => a + b, 0);
+        const avg = weights.length ? Math.round(total / weights.length) : 0;
+        const min = weights.length ? Math.min(...weights) : 0;
+        const max = weights.length ? Math.max(...weights) : 0;
+        
+        statMainLabel.textContent = 'Total Berat';
+        $('tot').textContent = formatNumber(total);
+        $('totKg').textContent = (total / 100).toFixed(2);
+        statKgRow.classList.remove('hidden');
+        statDetailsRow.classList.remove('hidden');
+        $('avg').textContent = formatNumber(avg);
+        $('min').textContent = formatNumber(min);
+        $('max').textContent = formatNumber(max);
+        
+        $('recordCount').textContent = `${beratData.length} data berat`;
+      }
+
+      $('sessionBadge').textContent = currentSessionId;
+
+      const itemGroups = {};
+      modeData.forEach(d => {
+        const itemName = d.item || 'Tanpa Item';
+        if (!itemGroups[itemName]) itemGroups[itemName] = [];
+        itemGroups[itemName].push(d);
+      });
+
+      const itemStatsEl = $('itemStats');
+      const itemNames = Object.keys(itemGroups);
       
-      $('tot').textContent = formatNumber(total);
-      $('totKg').textContent = (total / 1000).toFixed(2);
-      $('avg').textContent = formatNumber(avg);
-      $('min').textContent = formatNumber(min);
-      $('max').textContent = formatNumber(max);
-      $('recordCount').textContent = `${sessionData.length} karung`;
+      if (itemNames.length > 0) {
+        if (isKarungMode) {
+          itemStatsEl.innerHTML = `
+            <p class="text-white/70 text-xs font-semibold uppercase tracking-wide pt-2 border-t border-white/20">Per Item (Mode Karung)</p>
+            ${itemNames.map(itemName => {
+              const itemData = itemGroups[itemName];
+              const itemTotalKarung = itemData.reduce((sum, d) => sum + d.berat_gram, 0);
+              return `
+                <div class="stat-card rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p class="text-white/90 text-sm font-bold truncate max-w-[120px]">${itemName}</p>
+                    <p class="text-white/60 text-xs">${itemData.length} entri</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-white font-extrabold">${formatNumber(itemTotalKarung)}</p>
+                    <p class="text-white/60 text-xs">karung/box</p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          `;
+        } else {
+          itemStatsEl.innerHTML = `
+            <p class="text-white/70 text-xs font-semibold uppercase tracking-wide pt-2 border-t border-white/20">Per Item (Mode Berat)</p>
+            ${itemNames.map(itemName => {
+              const itemData = itemGroups[itemName];
+              const itemTotal = itemData.reduce((sum, d) => sum + d.berat_gram, 0);
+              return `
+                <div class="stat-card rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <p class="text-white/90 text-sm font-bold truncate max-w-[120px]">${itemName}</p>
+                    <p class="text-white/60 text-xs">${itemData.length} data</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-white font-extrabold">${formatNumber(itemTotal)}</p>
+                    <p class="text-white/60 text-xs">${(itemTotal / 100).toFixed(2)} kg</p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          `;
+        }
+      } else {
+        itemStatsEl.innerHTML = `<p class="text-white/60 text-xs text-center py-3">Belum ada data ${isKarungMode ? 'karung' : 'berat'}</p>`;
+      }
     }
 
-    const ROWS_PER_COLUMN = 30;
-
     function renderTable() {
-      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      const modeData = getCurrentModeData().sort((a, b) => a.nomor_urut - b.nomor_urut);
       const emptyState = $('emptyState');
-      const multiColumnContainer = $('multiColumnContainer');
-      const columnsWrapper = $('columnsWrapper');
+      const itemsContainer = $('itemsContainer');
+      const isKarungMode = isJumlahKarungMode();
       
-      if (sessionData.length === 0) {
+      const emptyMsg = isKarungMode 
+        ? 'Belum ada data karung. Masukkan jumlah karung/box dan klik Tambah.'
+        : 'Belum ada data berat. Masukkan berat dan klik Tambah.';
+      
+      if (modeData.length === 0) {
         emptyState.classList.remove('hidden');
-        multiColumnContainer.classList.add('hidden');
+        emptyState.querySelector('p.text-slate-400').textContent = emptyMsg;
+        itemsContainer.classList.add('hidden');
         updateStats();
         return;
       }
 
       emptyState.classList.add('hidden');
-      multiColumnContainer.classList.remove('hidden');
+      itemsContainer.classList.remove('hidden');
 
-      const numColumns = Math.ceil(sessionData.length / ROWS_PER_COLUMN);
-      const columns = [];
-      for (let i = 0; i < numColumns; i++) {
-        const start = i * ROWS_PER_COLUMN;
-        const end = Math.min(start + ROWS_PER_COLUMN, sessionData.length);
-        columns.push(sessionData.slice(start, end));
-      }
+      const itemGroups = {};
+      modeData.forEach(d => {
+        const itemName = d.item || 'Tanpa Item';
+        if (!itemGroups[itemName]) itemGroups[itemName] = [];
+        itemGroups[itemName].push(d);
+      });
 
-      columnsWrapper.innerHTML = columns.map((columnData, colIndex) => {
-        const startNum = colIndex * ROWS_PER_COLUMN + 1;
-        const endNum = startNum + columnData.length - 1;
-        
+      const itemColors = [
+        { bg: 'from-indigo-50 via-purple-50 to-pink-50', border: 'border-indigo-200', header: 'bg-gradient-to-r from-indigo-500 to-purple-600', text: 'text-indigo-700' },
+        { bg: 'from-emerald-50 via-teal-50 to-cyan-50', border: 'border-emerald-200', header: 'bg-gradient-to-r from-emerald-500 to-teal-600', text: 'text-emerald-700' },
+        { bg: 'from-amber-50 via-orange-50 to-yellow-50', border: 'border-amber-200', header: 'bg-gradient-to-r from-amber-500 to-orange-600', text: 'text-amber-700' },
+        { bg: 'from-rose-50 via-pink-50 to-fuchsia-50', border: 'border-rose-200', header: 'bg-gradient-to-r from-rose-500 to-pink-600', text: 'text-rose-700' },
+        { bg: 'from-sky-50 via-blue-50 to-indigo-50', border: 'border-sky-200', header: 'bg-gradient-to-r from-sky-500 to-blue-600', text: 'text-sky-700' }
+      ];
+
+      const itemNames = Object.keys(itemGroups);
+      
+      itemsContainer.innerHTML = itemNames.map((itemName, itemIndex) => {
+        const itemData = itemGroups[itemName].sort((a, b) => a.nomor_urut - b.nomor_urut);
+        const color = itemColors[itemIndex % itemColors.length];
+        const itemTotal = itemData.reduce((sum, d) => sum + d.berat_gram, 0);
+        const itemAvg = Math.round(itemTotal / itemData.length);
+
+        const numColumns = Math.ceil(itemData.length / ROWS_PER_COLUMN);
+        const columns = [];
+        for (let i = 0; i < numColumns; i++) {
+          const start = i * ROWS_PER_COLUMN;
+          const end = Math.min(start + ROWS_PER_COLUMN, itemData.length);
+          columns.push(itemData.slice(start, end));
+        }
+
+        const headerInfo = isKarungMode 
+          ? `<p class="text-white/80 text-xs font-medium">Total Karung</p>
+             <p class="text-xl font-extrabold">${formatNumber(itemTotal)} karung</p>
+             <p class="text-white/80 text-xs font-medium">${itemData.length} entri</p>`
+          : `<p class="text-white/80 text-xs font-medium">Total Berat</p>
+             <p class="text-xl font-extrabold">${formatNumber(itemTotal)}</p>
+             <p class="text-white/80 text-xs font-medium">${(itemTotal / 100).toFixed(2)} kg • Avg: ${formatNumber(itemAvg)}</p>`;
+
+        const columnHeader = isKarungMode ? 'Jml Karung' : 'Berat';
+
         return `
-          <div class="flex-shrink-0 w-64 rounded-xl border border-slate-200 overflow-hidden">
-            <div class="bg-indigo-50 px-3 py-2 border-b border-slate-200">
-              <span class="text-sm font-semibold text-indigo-700">Kolom ${colIndex + 1}</span>
-              <span class="text-xs text-indigo-500 ml-2">(No. ${startNum}-${endNum})</span>
+          <div class="rounded-3xl border-2 ${color.border} overflow-hidden bg-gradient-to-br ${color.bg} shadow-lg">
+            <div class="${color.header} px-6 py-4 text-white">
+              <div class="flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📦</span>
+                  <div>
+                    <h3 class="text-lg font-extrabold">${itemName}</h3>
+                    <p class="text-white/80 text-sm font-medium">${itemData.length} karung/box</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  ${headerInfo}
+                </div>
+              </div>
             </div>
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="bg-slate-50">
-                  <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 border-b w-12">No</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 border-b">Berat</th>
-                  <th class="px-3 py-2 text-center text-xs font-semibold text-slate-600 border-b w-16">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${columnData.map((item, index) => `
-                  <tr class="hover:bg-slate-50 transition" data-id="${item.__backendId}">
-                    <td class="px-3 py-2 text-slate-500 text-xs">${colIndex * ROWS_PER_COLUMN + index + 1}</td>
-                    <td class="px-3 py-2 font-medium text-slate-800 text-sm">${formatNumber(item.berat_gram)}g</td>
-                    <td class="px-3 py-1 text-center">
-                      <div class="flex items-center justify-center gap-0.5">
-                        <button class="edit-btn p-1.5 text-indigo-500 hover:bg-indigo-50 rounded transition" data-id="${item.__backendId}" title="Edit">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                          </svg>
-                        </button>
-                        <button class="delete-btn p-1.5 text-rose-500 hover:bg-rose-50 rounded transition" data-id="${item.__backendId}" title="Hapus">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                          </svg>
-                        </button>
+            
+            <div class="p-4">
+              <div class="flex gap-4 overflow-x-auto pb-3 hide-scrollbar">
+                ${columns.map((columnData, colIndex) => {
+                  const startNum = colIndex * ROWS_PER_COLUMN + 1;
+                  const endNum = startNum + columnData.length - 1;
+                  
+                  return `
+                    <div class="flex-shrink-0 w-72 rounded-2xl border-2 border-white/50 overflow-hidden bg-white shadow-md">
+                      <div class="bg-white/80 px-4 py-2.5 border-b border-slate-100">
+                        <span class="text-sm font-bold ${color.text}">Kolom ${colIndex + 1}</span>
+                        <span class="text-xs text-slate-400 ml-2 font-medium">(No. ${startNum}-${endNum})</span>
                       </div>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr class="bg-slate-50/80">
+                            <th class="px-3 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-12">No</th>
+                            <th class="px-3 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">${columnHeader}</th>
+                            <th class="px-3 py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-20">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                          ${columnData.map((dataItem, index) => `
+                            <tr class="hover:bg-slate-50 transition-colors" data-id="${dataItem.__backendId}">
+                              <td class="px-3 py-2 text-slate-400 text-xs font-bold">${colIndex * ROWS_PER_COLUMN + index + 1}</td>
+                              <td class="px-3 py-2 font-bold text-slate-800">${formatNumber(dataItem.berat_gram)}</td>
+                              <td class="px-3 py-1.5 text-center">
+                                <div class="flex items-center justify-center gap-1">
+                                  <button class="edit-btn p-1.5 text-indigo-500 hover:bg-indigo-100 rounded-lg transition btn-press" data-id="${dataItem.__backendId}" title="Edit">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                  </button>
+                                  <button class="delete-btn p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition btn-press" data-id="${dataItem.__backendId}" title="Hapus">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
           </div>
         `;
       }).join('');
 
-      columnsWrapper.querySelectorAll('.edit-btn').forEach(btn => {
+      itemsContainer.querySelectorAll('.edit-btn').forEach(btn => {
         btn.onclick = () => handleEdit(btn.dataset.id);
       });
-      columnsWrapper.querySelectorAll('.delete-btn').forEach(btn => {
+      itemsContainer.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = () => handleDelete(btn.dataset.id);
       });
 
       updateStats();
     }
 
-    // Render session history page
     function renderSessionHistory() {
       const sessions = getUniqueSessions();
       const historyEmpty = $('historyEmpty');
@@ -522,45 +820,57 @@
       historyList.innerHTML = sessions.map(session => {
         const isCurrentSession = session.session_id === currentSessionId;
         const avgWeight = session.items.length > 0 ? Math.round(session.total_berat / session.items.length) : 0;
+        const isKarungSession = session.satuan === 'jumlah_karung';
         
+        const summaryInfo = isKarungSession 
+          ? `<p class="text-xs text-indigo-500 font-semibold">Total Karung</p>
+             <p class="font-extrabold text-2xl">${formatNumber(session.total_berat)}</p>`
+          : `<p class="text-xs text-indigo-500 font-semibold">Total Berat</p>
+             <p class="font-extrabold text-2xl">${formatNumber(session.total_berat)}</p>
+             <p class="text-xs font-medium mt-1">${(session.total_berat / 100).toFixed(2)} kg</p>`;
+
+        const subInfo = isKarungSession
+          ? `<p class="text-sm font-bold text-slate-600">${session.items.length} entri</p>`
+          : `<p class="text-sm font-bold text-slate-600">${session.items.length} karung/box</p>
+             <p class="text-xs text-slate-400 font-medium">Avg: ${formatNumber(avgWeight)}</p>`;
+
         return `
-          <div class="border ${isCurrentSession ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 bg-white'} rounded-xl p-5 hover:shadow-md transition">
+          <div class="border-2 ${isCurrentSession ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50' : 'border-slate-200 bg-white hover:border-slate-300'} rounded-2xl p-6 transition-all card-hover">
             <div class="flex items-start justify-between gap-4">
               <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <h3 class="font-semibold text-slate-800">${session.customer || 'Tanpa Nama Customer'}</h3>
-                  ${isCurrentSession ? '<span class="px-2 py-0.5 bg-indigo-500 text-white text-xs rounded-full">Aktif</span>' : ''}
+                <div class="flex items-center gap-3 mb-4">
+                  <h3 class="font-extrabold text-slate-800 text-xl">${session.customer || 'Tanpa Nama Customer'}</h3>
+                  ${isCurrentSession ? '<span class="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold rounded-full shadow-lg shadow-indigo-200/50">🔥 Aktif</span>' : ''}
+                  ${isKarungSession ? '<span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">📦 Karung</span>' : '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">⚖️ Berat</span>'}
                 </div>
-                <div class="grid sm:grid-cols-2 gap-2 text-sm text-slate-600">
-                  <p>📅 ${formatDate(session.tanggal)}</p>
-                  <p>📦 ${session.item || '-'}</p>
-                  <p>🚚 ${session.ekspedisi || '-'}</p>
-                  <p>🚗 ${session.plat_nomor || '-'}</p>
-                  <p>✅ ${session.checker || '-'}</p>
+                <div class="grid sm:grid-cols-2 gap-3 text-sm text-slate-600">
+                  <p class="flex items-center gap-2"><span class="text-lg">📅</span> <span class="font-medium">${formatDate(session.tanggal)}</span></p>
+                  <p class="flex items-center gap-2"><span class="text-lg">📦</span> <span class="font-medium">${session.item || '-'}</span></p>
+                  <p class="flex items-center gap-2"><span class="text-lg">📝</span> <span class="font-medium">DO: ${session.nomor_do || '-'}</span></p>
+                  <p class="flex items-center gap-2"><span class="text-lg">🚚</span> <span class="font-medium">${session.ekspedisi || '-'}</span></p>
+                  <p class="flex items-center gap-2"><span class="text-lg">🚗</span> <span class="font-medium">${session.plat_nomor || '-'}</span></p>
+                  <p class="flex items-center gap-2"><span class="text-lg">✅</span> <span class="font-medium">${session.checker || '-'}</span></p>
                 </div>
               </div>
-              <div class="text-right">
-                <div class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg mb-2">
-                  <p class="text-xs text-indigo-500">Total Berat</p>
-                  <p class="font-bold">${formatNumber(session.total_berat)}g</p>
-                  <p class="text-xs">${(session.total_berat / 1000).toFixed(2)} kg</p>
+              <div class="text-right flex-shrink-0">
+                <div class="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 px-5 py-4 rounded-2xl mb-3 shadow-inner">
+                  ${summaryInfo}
                 </div>
-                <p class="text-sm text-slate-500">${session.items.length} karung</p>
-                <p class="text-xs text-slate-400">Avg: ${formatNumber(avgWeight)}g</p>
+                ${subInfo}
               </div>
             </div>
-            <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+            <div class="flex gap-3 mt-5 pt-5 border-t border-slate-200">
               ${!isCurrentSession ? `
-                <button class="load-session-btn flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition" data-session="${session.session_id}">
+                <button class="load-session-btn flex-1 px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl text-sm font-bold hover:from-indigo-600 hover:to-purple-700 transition btn-press shadow-lg shadow-indigo-100/50" data-session="${session.session_id}">
                   📂 Buka Sesi
                 </button>
               ` : `
-                <span class="flex-1 px-3 py-2 bg-slate-100 text-slate-500 rounded-lg text-sm text-center">Sesi Aktif</span>
+                <span class="flex-1 px-5 py-3 bg-slate-100 text-slate-400 rounded-xl text-sm text-center font-bold">✓ Sesi Aktif</span>
               `}
-              <button class="export-session-btn px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition" data-session="${session.session_id}">
+              <button class="export-session-btn px-5 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl text-sm font-bold hover:from-emerald-600 hover:to-green-700 transition btn-press" data-session="${session.session_id}">
                 📊 Excel
               </button>
-              <button class="delete-session-btn px-3 py-2 bg-rose-100 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-200 transition" data-session="${session.session_id}">
+              <button class="delete-session-btn px-5 py-3 bg-rose-100 text-rose-600 rounded-xl text-sm font-bold hover:bg-rose-200 transition btn-press" data-session="${session.session_id}">
                 🗑️
               </button>
             </div>
@@ -568,7 +878,6 @@
         `;
       }).join('');
       
-      // Add event listeners
       historyList.querySelectorAll('.load-session-btn').forEach(btn => {
         btn.onclick = () => loadSession(btn.dataset.session);
       });
@@ -580,7 +889,6 @@
       });
     }
 
-    // Load a saved session
     function loadSession(sessionId) {
       const sessionData = allData.filter(d => d.session_id === sessionId);
       if (sessionData.length === 0) {
@@ -591,44 +899,46 @@
       currentSessionId = sessionId;
       saveSessionId(sessionId);
       
-      // Restore session info from first item
       const firstItem = sessionData[0];
       $('tgl').value = firstItem.tanggal || '';
       $('cust').value = firstItem.customer || '';
       $('item').value = firstItem.item || '';
+      $('itemSelect').value = firstItem.item || '';
       $('ekspedisi').value = firstItem.ekspedisi || '';
       $('checker').value = firstItem.checker || '';
       $('platnomor').value = firstItem.plat_nomor || '';
+      $('nomordo').value = firstItem.nomor_do || '';
+      $('satuan').value = firstItem.satuan || 'berat';
       saveSessionInfo();
+      updateItemList();
+      updateInputMode();
       
       renderTable();
       switchTab('input');
-      showToast('Sesi berhasil dimuat', 'success');
+      showToast(`Sesi "${firstItem.customer || sessionId}" berhasil dimuat`, 'success');
     }
 
-    // Export specific session to Excel
     function exportSessionToExcel(sessionId) {
       const sessionData = allData.filter(d => d.session_id === sessionId).sort((a, b) => a.nomor_urut - b.nomor_urut);
       if (sessionData.length === 0) {
         showToast('Tidak ada data untuk diexport', 'error');
         return;
       }
-      
-      exportDataToExcel(sessionData, sessionId);
+      const isKarungSession = sessionData[0]?.satuan === 'jumlah_karung';
+      exportDataToExcel(sessionData, sessionId, isKarungSession);
     }
 
-    // Delete entire session
     async function deleteSession(sessionId) {
       const sessionData = allData.filter(d => d.session_id === sessionId);
       const isCurrentSession = sessionId === currentSessionId;
+      const customerName = sessionData[0]?.customer || 'Tanpa Nama';
       
       showConfirm(
-        'Hapus Sesi',
-        `Yakin ingin menghapus sesi ini dengan ${sessionData.length} data karung? Tindakan ini tidak dapat dibatalkan.`,
+        '🗑️ Hapus Sesi',
+        `Yakin ingin menghapus sesi "<strong>${customerName}</strong>" dengan ${sessionData.length} data? Tindakan ini tidak dapat dibatalkan.`,
         async () => {
-          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
           for (const item of sessionData) {
-            await sdk.delete(item);
+            await window.dataSdk.delete(item);
           }
           
           if (isCurrentSession) {
@@ -641,6 +951,7 @@
             $('ekspedisi').value = '';
             $('checker').value = '';
             $('platnomor').value = '';
+            $('nomordo').value = '';
           }
           
           showToast('Sesi berhasil dihapus', 'success');
@@ -653,19 +964,23 @@
       const item = allData.find(d => d.__backendId === backendId);
       if (!item) return;
 
+      const isKarungMode = isJumlahKarungMode();
+      const editLabel = isKarungMode ? 'jumlah karung' : 'berat';
+      const editPlaceholder = isKarungMode ? 'Jumlah karung' : 'Berat';
+
       const dialog = $('confirmDialog');
       dialog.innerHTML = `
         <div class="confirm-overlay">
           <div class="confirm-box">
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Edit Berat Karung #${item.nomor_urut}</h3>
-            <p class="text-slate-600 mb-4">Masukkan berat baru:</p>
-            <div class="relative mb-6">
-              <input type="number" id="editInput" value="${item.berat_gram}" class="w-full p-3 pr-16 border border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" />
-              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">gram</span>
+            <h3 class="text-xl font-extrabold text-slate-800 mb-3">✏️ Edit Data #${item.nomor_urut}</h3>
+            <p class="text-slate-600 mb-5">Masukkan ${editLabel} baru:</p>
+            <div class="mb-6">
+              <label for="editInput" class="sr-only">${editPlaceholder} baru</label>
+              <input type="number" id="editInput" value="${item.berat_gram}" class="w-full p-4 border-2 border-slate-200 rounded-2xl text-xl font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition input-glow">
             </div>
             <div class="flex gap-3 justify-end">
-              <button id="editCancel" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Batal</button>
-              <button id="editSave" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2">
+              <button id="editCancel" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition btn-press">Batal</button>
+              <button id="editSave" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition btn-press flex items-center gap-2">
                 <span id="editSaveText">Simpan</span>
               </button>
             </div>
@@ -684,37 +999,43 @@
         if (e.key === 'Enter') $('editSave').click();
       });
 
-      $('editSave').onclick = async () => {
+      $('editSave').onclick = () => {
         const newValue = parseInt(editInput.value);
         if (!newValue || newValue <= 0) {
-          showToast('Masukkan berat yang valid', 'error');
+          showToast(`Masukkan ${editLabel} yang valid`, 'error');
           editInput.focus();
           return;
         }
 
-        const saveBtn = $('editSave');
-        saveBtn.disabled = true;
-        $('editSaveText').innerHTML = '<span class="loading-spinner"></span>';
+        const oldValue = item.berat_gram;
+        dialog.classList.add('hidden');
+        
+        const itemIndex = allData.findIndex(d => d.__backendId === backendId);
+        if (itemIndex !== -1) {
+          allData[itemIndex].berat_gram = newValue;
+        }
+        
+        renderTable();
+        showToast(`Data #${item.nomor_urut} diperbarui ✓`, 'success');
 
         const updatedItem = { ...item, berat_gram: newValue };
-        const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
-        const result = await sdk.update(updatedItem);
-
-        saveBtn.disabled = false;
-        $('editSaveText').textContent = 'Simpan';
-
-        if (result.isOk) {
-          dialog.classList.add('hidden');
-          showToast(`Karung #${item.nomor_urut} diperbarui: ${formatNumber(newValue)}g`, 'success');
-        } else {
-          showToast('Gagal memperbarui data', 'error');
-        }
+        window.dataSdk.update(updatedItem).then(result => {
+          if (!result.isOk) {
+            const idx = allData.findIndex(d => d.__backendId === backendId);
+            if (idx !== -1) {
+              allData[idx].berat_gram = oldValue;
+            }
+            renderTable();
+            showToast('Gagal menyimpan, data dikembalikan', 'error');
+          }
+        });
       };
     }
 
     async function handleAdd() {
       const input = $('inputGram');
       const value = parseInt(input.value);
+      const satuan = $('satuan').value || 'berat';
       
       if (!value || value <= 0) {
         showToast('Masukkan berat yang valid', 'error');
@@ -722,76 +1043,164 @@
         return;
       }
 
-      if (allData.length >= 999) {
-        showToast('Batas maksimum 999 data tercapai', 'error');
+      if (allData.length + 1 > MAX_RECORDS) {
+        showToast(`Batas maksimum ${MAX_RECORDS} data tercapai`, 'warning');
         return;
       }
 
-      const sessionData = getCurrentSessionData();
-      const nextNumber = sessionData.length + 1;
+      const beratData = getBeratData();
+      let nextNumber = beratData.length + 1;
 
-      const tgl = $('tgl').value || new Date().toISOString().split('T')[0];
-      const cust = $('cust').value || '';
-      const item = $('item').value || '';
-      const ekspedisi = $('ekspedisi').value || '';
-      const checker = $('checker').value || '';
-      const platnomor = $('platnomor').value || '';
-
-      const btn = $('btnAdd');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="loading-spinner"></span>';
-
-      const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
-      const result = await sdk.create({
+      input.value = '';
+      input.focus();
+      
+      const tempId = 'temp_' + Date.now();
+      
+      const newItem = {
+        __backendId: tempId,
         session_id: currentSessionId,
-        tanggal: tgl,
-        customer: cust,
-        item: item,
-        ekspedisi: ekspedisi,
-        checker: checker,
-        plat_nomor: platnomor,
+        tanggal: $('tgl').value || new Date().toISOString().split('T')[0],
+        customer: $('cust').value || '',
+        item: $('item').value || '',
+        ekspedisi: $('ekspedisi').value || '',
+        checker: $('checker').value || '',
+        plat_nomor: $('platnomor').value || '',
+        nomor_do: $('nomordo').value || '',
         berat_gram: value,
         nomor_urut: nextNumber,
+        satuan: satuan,
         created_at: new Date().toISOString()
+      };
+      
+      allData.push(newItem);
+      renderTable();
+      showToast(`Data #${nextNumber} ditambahkan ✓`, 'success');
+
+      const result = await window.dataSdk.create({
+        session_id: newItem.session_id,
+        tanggal: newItem.tanggal,
+        customer: newItem.customer,
+        item: newItem.item,
+        ekspedisi: newItem.ekspedisi,
+        checker: newItem.checker,
+        plat_nomor: newItem.plat_nomor,
+        nomor_do: newItem.nomor_do,
+        berat_gram: newItem.berat_gram,
+        nomor_urut: newItem.nomor_urut,
+        satuan: newItem.satuan,
+        created_at: newItem.created_at
       });
+      
+      if (!result.isOk) {
+        allData = allData.filter(d => d.__backendId !== tempId);
+        renderTable();
+        showToast('Gagal menyimpan. Coba lagi.', 'error');
+      }
+    }
 
-      btn.disabled = false;
-      btn.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Tambah
-      `;
-
-      if (result.isOk) {
-        input.value = '';
+    async function handleAddJumlah() {
+      const input = $('inputJumlahKarung');
+      const jumlah = parseInt(input.value);
+      const satuan = $('satuan').value || 'jumlah_karung';
+      
+      if (!jumlah || jumlah <= 0) {
+        showToast('Masukkan jumlah karung yang valid', 'error');
         input.focus();
-        showToast(`Karung #${nextNumber} ditambahkan: ${formatNumber(value)}g`, 'success');
-      } else {
-        showToast('Gagal menyimpan data', 'error');
+        return;
+      }
+
+      if (allData.length + 1 > MAX_RECORDS) {
+        showToast(`Batas maksimum ${MAX_RECORDS} data tercapai`, 'warning');
+        return;
+      }
+
+      const karungData = getKarungData();
+      let nextNumber = karungData.length + 1;
+
+      input.value = '';
+      input.focus();
+      
+      const tempId = 'temp_' + Date.now();
+      
+      const newItem = {
+        __backendId: tempId,
+        session_id: currentSessionId,
+        tanggal: $('tgl').value || new Date().toISOString().split('T')[0],
+        customer: $('cust').value || '',
+        item: $('item').value || '',
+        ekspedisi: $('ekspedisi').value || '',
+        checker: $('checker').value || '',
+        plat_nomor: $('platnomor').value || '',
+        nomor_do: $('nomordo').value || '',
+        berat_gram: jumlah,
+        nomor_urut: nextNumber,
+        satuan: satuan,
+        created_at: new Date().toISOString()
+      };
+      
+      allData.push(newItem);
+      renderTable();
+      showToast(`${jumlah} karung/box ditambahkan ✓`, 'success');
+
+      const result = await window.dataSdk.create({
+        session_id: newItem.session_id,
+        tanggal: newItem.tanggal,
+        customer: newItem.customer,
+        item: newItem.item,
+        ekspedisi: newItem.ekspedisi,
+        checker: newItem.checker,
+        plat_nomor: newItem.plat_nomor,
+        nomor_do: newItem.nomor_do,
+        berat_gram: newItem.berat_gram,
+        nomor_urut: newItem.nomor_urut,
+        satuan: newItem.satuan,
+        created_at: newItem.created_at
+      });
+      
+      if (!result.isOk) {
+        allData = allData.filter(d => d.__backendId !== tempId);
+        renderTable();
+        showToast('Gagal menyimpan. Coba lagi.', 'error');
       }
     }
 
     async function handleDelete(backendId) {
       const item = allData.find(d => d.__backendId === backendId);
-      if (!item) return;
+      if (!item) {
+        showToast('Data tidak ditemukan', 'error');
+        return;
+      }
+
+      const nomorUrut = item.nomor_urut;
+      const beratGram = item.berat_gram;
+      const isKarungMode = isJumlahKarungMode();
+      const deleteMsg = isKarungMode 
+        ? `Hapus karung #${nomorUrut}?`
+        : `Hapus data #${nomorUrut} dengan berat <strong>${formatNumber(beratGram)}</strong>?`;
 
       showConfirm(
-        'Hapus Data',
-        `Yakin ingin menghapus karung #${item.nomor_urut} (${formatNumber(item.berat_gram)}g)?`,
+        '🗑️ Hapus Data',
+        deleteMsg,
         async () => {
-          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
-          const result = await sdk.delete(item);
-          if (result.isOk) {
-            showToast('Data berhasil dihapus', 'success');
-          } else {
-            showToast('Gagal menghapus data', 'error');
+          const itemIndex = allData.findIndex(d => d.__backendId === backendId);
+          const deletedItem = allData[itemIndex];
+          
+          if (itemIndex !== -1) {
+            allData.splice(itemIndex, 1);
+            renderTable();
+            showToast(`Data #${nomorUrut} dihapus ✓`, 'success');
+          }
+
+          const result = await window.dataSdk.delete(deletedItem);
+          if (!result.isOk) {
+            allData.push(deletedItem);
+            renderTable();
+            showToast('Gagal menghapus, data dikembalikan', 'error');
           }
         }
       );
     }
 
-    // Save current session (update all items with current session info)
     async function handleSaveSession() {
       const sessionData = getCurrentSessionData();
       if (sessionData.length === 0) {
@@ -806,38 +1215,38 @@
       
       const tgl = $('tgl').value || new Date().toISOString().split('T')[0];
       const cust = $('cust').value || '';
-      const item = $('item').value || '';
+      const itemVal = $('item').value || '';
       const ekspedisi = $('ekspedisi').value || '';
       const checker = $('checker').value || '';
       const platnomor = $('platnomor').value || '';
+      const nomordo = $('nomordo').value || '';
+      const satuan = $('satuan').value || 'berat';
       
-      const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
-      
-      // Update all items in current session with latest info
       for (const dataItem of sessionData) {
-        const updatedItem = {
+        await window.dataSdk.update({
           ...dataItem,
           tanggal: tgl,
           customer: cust,
-          item: item,
+          item: itemVal,
           ekspedisi: ekspedisi,
           checker: checker,
-          plat_nomor: platnomor
-        };
-        await sdk.update(updatedItem);
+          plat_nomor: platnomor,
+          nomor_do: nomordo,
+          satuan: satuan
+        });
       }
       
       btn.disabled = false;
       btnText.textContent = 'Simpan Sesi';
       
       saveSessionInfo();
-      showToast(`Sesi berhasil disimpan dengan ${sessionData.length} karung`, 'success');
+      showToast(`Sesi "${cust || currentSessionId}" disimpan dengan ${sessionData.length} data`, 'success');
     }
 
     function handleNewSession() {
       showConfirm(
-        'Sesi Baru',
-        'Mulai sesi baru? Data sesi sebelumnya tetap tersimpan.',
+        '🆕 Sesi Baru',
+        'Mulai sesi baru? Data sesi sebelumnya tetap tersimpan dan dapat diakses di Riwayat Sesi.',
         () => {
           currentSessionId = generateSessionId();
           saveSessionId(currentSessionId);
@@ -848,233 +1257,517 @@
           $('ekspedisi').value = '';
           $('checker').value = '';
           $('platnomor').value = '';
+          $('nomordo').value = '';
           
           clearSessionInfo();
           saveSessionId(currentSessionId);
-          saveSessionInfo();
           
           renderTable();
-          showToast('Sesi baru dimulai', 'success');
-        }
+          showToast('Sesi baru dimulai! Silakan input data.', 'success');
+        },
+        'Mulai Sesi Baru',
+        false
       );
     }
 
     async function handleResetAll() {
-      const sessionData = getCurrentSessionData();
-      if (sessionData.length === 0) {
-        showToast('Tidak ada data untuk dihapus', 'info');
+      const modeData = getCurrentModeData();
+      const isKarungMode = isJumlahKarungMode();
+      const modeLabel = isKarungMode ? 'karung' : 'berat';
+      
+      if (modeData.length === 0) {
+        showToast(`Tidak ada data ${modeLabel} untuk dihapus`, 'info');
         return;
       }
 
       showConfirm(
-        'Hapus Semua Data',
-        `Yakin ingin menghapus ${sessionData.length} data karung dari sesi ini? Tindakan ini tidak dapat dibatalkan.`,
+        `🗑️ Hapus Data ${isKarungMode ? 'Karung' : 'Berat'}`,
+        `Hapus <strong>${modeData.length} data ${modeLabel}</strong> dari sesi ini? Data ${isKarungMode ? 'berat' : 'karung'} tetap aman. Tindakan ini tidak dapat dibatalkan.`,
         async () => {
-          const sdk = window.activeSdk || window.dataSdk || localFallbackSdk;
-          for (const item of sessionData) {
-            await sdk.delete(item);
+          for (const item of modeData) {
+            await window.dataSdk.delete(item);
           }
-          showToast('Semua data sesi dihapus', 'success');
+          showToast(`Semua data ${modeLabel} telah dihapus`, 'success');
         }
       );
     }
 
-    function exportDataToExcel(sessionData, sessionId) {
-      const firstItem = sessionData[0];
-      const weights = sessionData.map(d => d.berat_gram);
-      const total = weights.reduce((a, b) => a + b, 0);
-      const avg = Math.round(total / weights.length);
+    let savedItems = [];
 
-      const numColumns = Math.ceil(sessionData.length / ROWS_PER_COLUMN);
-      const columns = [];
-      for (let i = 0; i < numColumns; i++) {
-        const start = i * ROWS_PER_COLUMN;
-        const end = Math.min(start + ROWS_PER_COLUMN, sessionData.length);
-        columns.push(sessionData.slice(start, end));
-      }
+    function loadSavedItems() {
+      try {
+        const saved = localStorage.getItem('tallysheet_items');
+        return saved ? JSON.parse(saved) : [];
+      } catch (e) { return []; }
+    }
+
+    function saveSavedItems() {
+      try {
+        localStorage.setItem('tallysheet_items', JSON.stringify(savedItems));
+      } catch (e) {}
+    }
+
+    function updateItemList() {
+      savedItems = loadSavedItems();
+      const dataItems = [...new Set(allData.map(d => d.item).filter(Boolean))];
+      
+      dataItems.forEach(item => {
+        if (!savedItems.includes(item)) savedItems.push(item);
+      });
+      
+      savedItems.sort((a, b) => a.localeCompare(b, 'id'));
+      saveSavedItems();
+      
+      const select = $('itemSelect');
+      const currentValue = $('item').value;
+      
+      select.innerHTML = `
+        <option value="">-- Pilih Item --</option>
+        ${savedItems.map(item => `<option value="${item}" ${item === currentValue ? 'selected' : ''}>${item}</option>`).join('')}
+        <option value="__new__">➕ Tambah Item Baru...</option>
+      `;
+    }
+
+    function showAddItemDialog() {
+      const dialog = $('confirmDialog');
+      dialog.innerHTML = `
+        <div class="confirm-overlay">
+          <div class="confirm-box">
+            <h3 class="text-xl font-extrabold text-slate-800 mb-3">➕ Tambah Item Baru</h3>
+            <p class="text-slate-600 mb-5">Masukkan nama item baru:</p>
+            <div class="mb-6">
+              <label for="newItemInput" class="sr-only">Nama item baru</label>
+              <input type="text" id="newItemInput" placeholder="Contoh: Pakan Ayam Layer" class="w-full p-4 border-2 border-slate-200 rounded-2xl text-lg font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition input-glow">
+            </div>
+            <div class="flex gap-3 justify-end">
+              <button id="addItemCancel" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition btn-press">Batal</button>
+              <button id="addItemSave" class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition btn-press">Tambah</button>
+            </div>
+            ${savedItems.length > 0 ? `
+              <div class="mt-6 pt-6 border-t border-slate-200">
+                <p class="text-sm font-semibold text-slate-500 mb-3">Item Tersimpan:</p>
+                <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                  ${savedItems.map(item => `
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm">
+                      ${item}
+                      <button class="delete-item-btn text-slate-400 hover:text-rose-500 transition ml-1" data-item="${item}" title="Hapus item">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+      dialog.classList.remove('hidden');
+      
+      const newItemInput = $('newItemInput');
+      newItemInput.focus();
+
+      $('addItemCancel').onclick = () => dialog.classList.add('hidden');
+      
+      newItemInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') $('addItemSave').click();
+      });
+
+      $('addItemSave').onclick = () => {
+        const newItem = newItemInput.value.trim();
+        if (!newItem) {
+          showToast('Masukkan nama item', 'error');
+          newItemInput.focus();
+          return;
+        }
+        
+        if (savedItems.includes(newItem)) {
+          showToast('Item sudah ada dalam daftar', 'warning');
+          newItemInput.focus();
+          return;
+        }
+        
+        savedItems.push(newItem);
+        saveSavedItems();
+        updateItemList();
+        
+        $('item').value = newItem;
+        $('itemSelect').value = newItem;
+        saveSessionInfo();
+        
+        dialog.classList.add('hidden');
+        showToast(`Item "${newItem}" berhasil ditambahkan`, 'success');
+      };
+
+      dialog.querySelectorAll('.delete-item-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const itemToDelete = btn.dataset.item;
+          
+          savedItems = savedItems.filter(i => i !== itemToDelete);
+          saveSavedItems();
+          
+          if ($('item').value === itemToDelete) {
+            $('item').value = '';
+            $('itemSelect').value = '';
+            saveSessionInfo();
+          }
+          
+          showAddItemDialog();
+          showToast(`Item "${itemToDelete}" dihapus dari daftar`, 'info');
+        };
+      });
+    }
+
+    function exportDataToExcel(dataToExport, sessionId, isKarungMode = false) {
+      const firstItem = dataToExport[0];
+      
+      const itemGroups = {};
+      dataToExport.forEach(d => {
+        const itemName = d.item || 'Tanpa Item';
+        if (!itemGroups[itemName]) itemGroups[itemName] = [];
+        itemGroups[itemName].push(d);
+      });
+
+      const itemNames = Object.keys(itemGroups);
+      const grandTotal = dataToExport.reduce((sum, d) => sum + d.berat_gram, 0);
+      const grandTotalKg = (grandTotal / 100).toFixed(2);
+
+      const modeText = isKarungMode ? 'JUMLAH KARUNG/BOX' : 'BERAT';
+      const columnHeader = isKarungMode ? 'Jml Karung' : 'Berat';
 
       const wsData = [
-        ['EASY TALLY SHEET - PT. CHAROEN POKPHAND INDONESIA FOOD DIVISION - SRAGEN'],
+        [`EASY TALLY SHEET - ${modeText}`],
+        ['PT. CHAROEN POKPHAND INDONESIA FOOD DIVISION - SRAGEN'],
         [],
         ['Tanggal', firstItem.tanggal || '-', '', 'Customer', firstItem.customer || '-'],
-        ['Item', firstItem.item || '-', '', 'Ekspedisi', firstItem.ekspedisi || '-'],
-        ['Checker', firstItem.checker || '-', '', 'Plat Nomor', firstItem.plat_nomor || '-'],
+        ['Nomor DO', firstItem.nomor_do || '-', '', 'Ekspedisi', firstItem.ekspedisi || '-'],
+        ['Plat Nomor', firstItem.plat_nomor || '-', '', 'Checker', firstItem.checker || '-'],
+        ['Mode Input', isKarungMode ? 'Jumlah Karung/Box' : 'Berat (gram)', '', 'Session ID', sessionId],
         []
       ];
 
-      const headerRow = [];
-      for (let col = 0; col < numColumns; col++) {
-        const startNum = col * ROWS_PER_COLUMN + 1;
-        const endNum = Math.min(startNum + ROWS_PER_COLUMN - 1, sessionData.length);
-        headerRow.push(`No`, `Berat (g) [${startNum}-${endNum}]`);
-        if (col < numColumns - 1) headerRow.push('');
-      }
-      wsData.push(headerRow);
+      itemNames.forEach((itemName, itemIndex) => {
+        const itemData = itemGroups[itemName].sort((a, b) => a.nomor_urut - b.nomor_urut);
+        const itemValues = itemData.map(d => d.berat_gram);
+        const itemTotal = itemValues.reduce((a, b) => a + b, 0);
+        const itemTotalKg = (itemTotal / 100).toFixed(2);
+        const itemAvg = Math.round(itemTotal / itemData.length);
 
-      for (let row = 0; row < ROWS_PER_COLUMN; row++) {
-        const dataRow = [];
+        wsData.push([`ITEM: ${itemName}`]);
+        wsData.push([]);
+
+        const numColumns = Math.ceil(itemData.length / ROWS_PER_COLUMN);
+        const columns = [];
+        for (let i = 0; i < numColumns; i++) {
+          const start = i * ROWS_PER_COLUMN;
+          const end = Math.min(start + ROWS_PER_COLUMN, itemData.length);
+          columns.push(itemData.slice(start, end));
+        }
+
+        const headerRow = [];
         for (let col = 0; col < numColumns; col++) {
-          if (columns[col] && columns[col][row]) {
-            const item = columns[col][row];
-            const nomor = col * ROWS_PER_COLUMN + row + 1;
-            dataRow.push(nomor, item.berat_gram);
-          } else {
-            dataRow.push('', '');
+          headerRow.push('No', columnHeader);
+          if (col < numColumns - 1) headerRow.push('');
+        }
+        wsData.push(headerRow);
+
+        for (let row = 0; row < ROWS_PER_COLUMN; row++) {
+          const dataRow = [];
+          for (let col = 0; col < numColumns; col++) {
+            if (columns[col] && columns[col][row]) {
+              const dataItem = columns[col][row];
+              const nomor = col * ROWS_PER_COLUMN + row + 1;
+              dataRow.push(nomor, formatNumber(dataItem.berat_gram));
+            } else {
+              dataRow.push('', '');
+            }
+            if (col < numColumns - 1) dataRow.push('');
           }
-          if (col < numColumns - 1) dataRow.push('');
+          if (dataRow.some(cell => cell !== '')) {
+            wsData.push(dataRow);
+          }
         }
-        if (dataRow.some(cell => cell !== '')) {
-          wsData.push(dataRow);
+
+        wsData.push([]);
+        wsData.push([`SUBTOTAL ${itemName.toUpperCase()}:`]);
+        
+        if (isKarungMode) {
+          wsData.push(['Total Karung/Box', formatNumber(itemTotal)]);
+          wsData.push(['Jumlah Entri', itemData.length]);
+        } else {
+          wsData.push(['Jumlah Data', itemData.length]);
+          wsData.push(['Total Berat (gram)', formatNumber(itemTotal)]);
+          wsData.push(['Total Berat (kg)', itemTotalKg]);
+          wsData.push(['Rata-rata', formatNumber(itemAvg)]);
+          wsData.push(['Minimum', formatNumber(Math.min(...itemValues))]);
+          wsData.push(['Maximum', formatNumber(Math.max(...itemValues))]);
         }
-      }
+        wsData.push([]);
+
+        if (itemIndex < itemNames.length - 1) {
+          wsData.push(['----------------------------------------']);
+          wsData.push([]);
+        }
+      });
 
       wsData.push([]);
-      wsData.push(['RINGKASAN']);
-      wsData.push(['Total Karung', sessionData.length]);
-      wsData.push(['Total Berat', `${formatNumber(total)} gram`, '', 'Kg', (total/1000).toFixed(2)]);
-      wsData.push(['Rata-rata', `${formatNumber(avg)} gram`]);
-      wsData.push(['Minimum', `${formatNumber(Math.min(...weights))} gram`]);
-      wsData.push(['Maximum', `${formatNumber(Math.max(...weights))} gram`]);
+      wsData.push(['========================================']);
+      wsData.push(['RINGKASAN KESELURUHAN']);
+      wsData.push(['========================================']);
+      wsData.push(['Total Jenis Item', itemNames.length]);
+      wsData.push(['Total Entri Data', dataToExport.length]);
+      
+      if (isKarungMode) {
+        wsData.push(['GRAND TOTAL KARUNG/BOX', formatNumber(grandTotal)]);
+      } else {
+        wsData.push(['GRAND TOTAL BERAT', formatNumber(grandTotal)]);
+        wsData.push(['GRAND TOTAL BERAT (kg)', grandTotalKg]);
+        
+        const allValues = dataToExport.map(d => d.berat_gram);
+        const grandAvg = Math.round(grandTotal / dataToExport.length);
+        wsData.push(['Rata-rata Keseluruhan', formatNumber(grandAvg)]);
+        wsData.push(['Minimum Keseluruhan', formatNumber(Math.min(...allValues))]);
+        wsData.push(['Maximum Keseluruhan', formatNumber(Math.max(...allValues))]);
+      }
+      
+      wsData.push([]);
+      wsData.push(['Dicetak pada:', new Date().toLocaleString('id-ID')]);
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       
-      const colWidths = [];
-      for (let col = 0; col < numColumns; col++) {
-        colWidths.push({ wch: 6 });
-        colWidths.push({ wch: 18 });
-        if (col < numColumns - 1) colWidths.push({ wch: 2 });
-      }
-      ws['!cols'] = colWidths;
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Tally Sheet');
+      ws['!cols'] = [
+        { wch: 20 }, { wch: 15 }, { wch: 5 },
+        { wch: 20 }, { wch: 15 }, { wch: 5 },
+        { wch: 20 }, { wch: 15 }
+      ];
       
-      const fileName = `TallySheet_${firstItem.tanggal || 'data'}_${sessionId}.xlsx`;
+      const wb = XLSX.utils.book_new();
+      const sheetName = isKarungMode ? 'Data Karung' : 'Data Berat';
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      
+      const modeLabel = isKarungMode ? 'Karung' : 'Berat';
+      const fileName = `TallySheet_${modeLabel}_${firstItem.customer || 'data'}_${firstItem.tanggal || 'export'}.xlsx`;
       XLSX.writeFile(wb, fileName);
-      showToast('Excel berhasil diexport', 'success');
+      showToast(`File Excel (${modeLabel}) berhasil diunduh`, 'success');
     }
 
     function exportToExcel() {
-      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
-      if (sessionData.length === 0) {
-        showToast('Tidak ada data untuk diexport', 'error');
+      const modeData = getCurrentModeData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      const isKarungMode = isJumlahKarungMode();
+      const modeLabel = isKarungMode ? 'karung' : 'berat';
+      
+      if (modeData.length === 0) {
+        showToast(`Tidak ada data ${modeLabel} untuk diexport`, 'error');
         return;
       }
-      exportDataToExcel(sessionData, currentSessionId);
+      exportDataToExcel(modeData, currentSessionId, isKarungMode);
     }
 
     function exportToPDF() {
-      const sessionData = getCurrentSessionData().sort((a, b) => a.nomor_urut - b.nomor_urut);
-      if (sessionData.length === 0) {
-        showToast('Tidak ada data untuk diexport', 'error');
+      const modeData = getCurrentModeData().sort((a, b) => a.nomor_urut - b.nomor_urut);
+      const isKarungMode = isJumlahKarungMode();
+      const modeLabel = isKarungMode ? 'Karung' : 'Berat';
+      
+      if (modeData.length === 0) {
+        showToast(`Tidak ada data ${modeLabel.toLowerCase()} untuk diexport`, 'error');
         return;
       }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       
-      const firstItem = sessionData[0];
-      const weights = sessionData.map(d => d.berat_gram);
-      const total = weights.reduce((a, b) => a + b, 0);
-      const avg = Math.round(total / weights.length);
+      const firstItem = modeData[0];
+      
+      const itemGroups = {};
+      modeData.forEach(d => {
+        const itemName = d.item || 'Tanpa Item';
+        if (!itemGroups[itemName]) itemGroups[itemName] = [];
+        itemGroups[itemName].push(d);
+      });
+
+      const itemNames = Object.keys(itemGroups);
+      const grandTotal = modeData.reduce((sum, d) => sum + d.berat_gram, 0);
+      const grandTotalKg = (grandTotal / 100).toFixed(2);
+      const columnHeader = isKarungMode ? 'Jml Karung' : 'Berat (gram)';
+      const titleText = isKarungMode ? 'TALLY SHEET - JUMLAH KARUNG/BOX' : 'TALLY SHEET - DATA BERAT';
 
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('TALLY SHEET LOADING PER KARUNG', 105, 20, { align: 'center' });
+      doc.setTextColor(79, 70, 229);
+      doc.text(titleText, 105, 18, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('PT. CHAROEN POKPHAND INDONESIA FOOD DIVISION - SRAGEN', 105, 25, { align: 'center' });
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      let y = 38;
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, y - 5, 182, 45, 3, 3, 'FD');
+      
+      const infoData = [
+        ['Tanggal', firstItem.tanggal || '-', 'Customer', firstItem.customer || '-'],
+        ['Nomor DO', firstItem.nomor_do || '-', 'Ekspedisi', firstItem.ekspedisi || '-'],
+        ['Plat Nomor', firstItem.plat_nomor || '-', 'Checker', firstItem.checker || '-'],
+        ['Mode Input', isKarungMode ? 'Jumlah Karung/Box' : 'Berat (gram)', '', '']
+      ];
+      
+      infoData.forEach((row, index) => {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text(`${row[0]}:`, 18, y + (index * 10));
+        doc.setFont('helvetica', 'normal');
+        doc.text(row[1], 45, y + (index * 10));
+        
+        if (row[2]) {
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${row[2]}:`, 110, y + (index * 10));
+          doc.setFont('helvetica', 'normal');
+          doc.text(row[3], 140, y + (index * 10));
+        }
+      });
+
+      y += 52;
+
+      itemNames.forEach((itemName, itemIndex) => {
+        const itemData = itemGroups[itemName].sort((a, b) => a.nomor_urut - b.nomor_urut);
+        const itemValues = itemData.map(d => d.berat_gram);
+        const itemTotal = itemValues.reduce((a, b) => a + b, 0);
+        const itemTotalKg = (itemTotal / 100).toFixed(2);
+        const itemAvg = Math.round(itemTotal / itemData.length);
+
+        if (y > 240) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(79, 70, 229);
+        doc.text(`ITEM: ${itemName}`, 14, y);
+        doc.setTextColor(0, 0, 0);
+        y += 6;
+
+        doc.autoTable({
+          startY: y,
+          head: [['No', columnHeader]],
+          body: itemData.map((d, i) => [i + 1, formatNumber(d.berat_gram)]),
+          theme: 'striped',
+          headStyles: { 
+            fillColor: [79, 70, 229],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8
+          },
+          alternateRowStyles: {
+            fillColor: [248, 250, 252]
+          },
+          margin: { left: 14, right: 100 },
+          columnStyles: {
+            0: { cellWidth: 20, halign: 'center' },
+            1: { cellWidth: 50, halign: 'right' }
+          }
+        });
+
+        y = doc.lastAutoTable.finalY + 5;
+
+        doc.setDrawColor(79, 70, 229);
+        doc.setFillColor(238, 242, 255);
+        const subtotalHeight = isKarungMode ? 18 : 28;
+        doc.roundedRect(14, y, 90, subtotalHeight, 2, 2, 'FD');
+        
+        y += 6;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(79, 70, 229);
+        doc.text(`Subtotal ${itemName}:`, 18, y);
+        doc.setTextColor(0, 0, 0);
+        
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        
+        if (isKarungMode) {
+          doc.text(`Total Karung/Box: ${formatNumber(itemTotal)} | Entri: ${itemData.length}`, 18, y);
+          y += 12;
+        } else {
+          doc.text(`Jumlah: ${itemData.length} | Total: ${formatNumber(itemTotal)} (${itemTotalKg} kg)`, 18, y);
+          y += 5;
+          doc.text(`Avg: ${formatNumber(itemAvg)} | Min: ${formatNumber(Math.min(...itemValues))} | Max: ${formatNumber(Math.max(...itemValues))}`, 18, y);
+          y += 15;
+        }
+
+        y += 8;
+      });
+
+      if (y > 240) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setDrawColor(79, 70, 229);
+      doc.setLineWidth(1);
+      doc.line(14, y, 196, y);
+      y += 10;
+
+      doc.setFillColor(79, 70, 229);
+      const grandTotalHeight = isKarungMode ? 35 : 50;
+      doc.roundedRect(14, y, 182, grandTotalHeight, 3, 3, 'F');
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('RINGKASAN KESELURUHAN', 105, y + 10, { align: 'center' });
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      let y = 35;
-      const info = [
-        ['Tanggal', firstItem.tanggal || '-'],
-        ['Customer', firstItem.customer || '-'],
-        ['Item', firstItem.item || '-'],
-        ['Ekspedisi', firstItem.ekspedisi || '-'],
-        ['Checker', firstItem.checker || '-'],
-        ['Plat Nomor', firstItem.plat_nomor || '-']
-      ];
-
-      info.forEach(([label, value]) => {
-        doc.text(`${label}: ${value}`, 14, y);
-        y += 6;
-      });
-
-      const tableData = sessionData.map((d, i) => [i + 1, formatNumber(d.berat_gram)]);
+      doc.text(`Total Jenis Item: ${itemNames.length} | Total Entri: ${modeData.length}`, 105, y + 18, { align: 'center' });
       
-      doc.autoTable({
-        startY: y + 5,
-        head: [['No', 'Berat (gram)']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { fillColor: [79, 70, 229] },
-        margin: { left: 14, right: 14 }
-      });
-
-      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Total: ${formatNumber(total)} gram (${(total/1000).toFixed(2)} kg)`, 14, finalY);
-      doc.text(`Rata-rata: ${formatNumber(avg)} gram`, 14, finalY + 6);
-      doc.text(`Min: ${formatNumber(Math.min(...weights))} gram | Max: ${formatNumber(Math.max(...weights))} gram`, 14, finalY + 12);
+      
+      if (isKarungMode) {
+        doc.text(`GRAND TOTAL: ${formatNumber(grandTotal)} Karung/Box`, 105, y + 28, { align: 'center' });
+      } else {
+        doc.text(`GRAND TOTAL: ${formatNumber(grandTotal)} (${grandTotalKg} kg)`, 105, y + 28, { align: 'center' });
+        
+        const allValues = modeData.map(d => d.berat_gram);
+        const grandAvg = Math.round(grandTotal / modeData.length);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Rata-rata: ${formatNumber(grandAvg)} | Min: ${formatNumber(Math.min(...allValues))} | Max: ${formatNumber(Math.max(...allValues))}`, 105, y + 38, { align: 'center' });
+      }
+      
+      y += grandTotalHeight + 15;
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, y);
+      doc.text('Easy Tally Sheet - PT. CPI Food Division Sragen', 196, y, { align: 'right' });
 
-      const fileName = `TallySheet_${firstItem.tanggal || 'data'}_${currentSessionId}.pdf`;
+      const fileName = `TallySheet_${modeLabel}_${firstItem.customer || 'data'}_${firstItem.tanggal || 'export'}.pdf`;
       doc.save(fileName);
-      showToast('PDF berhasil diexport', 'success');
+      showToast(`File PDF (${modeLabel}) berhasil diunduh`, 'success');
     }
 
     const dataHandler = {
       onDataChanged(data) {
-        allData = data;
+        allData = data || [];
         renderTable();
         updateStats();
-      }
-    };
-
-    const localFallbackSdk = {
-      _data: [],
-      _handler: null,
-      _idCounter: 1,
-      
-      async init(handler) {
-        this._handler = handler;
-        try {
-          const saved = localStorage.getItem('tallysheet_data');
-          if (saved) this._data = JSON.parse(saved);
-        } catch (e) {}
-        this._notify();
-        return { isOk: true, isError: false };
-      },
-      
-      async create(record) {
-        const newRecord = { ...record, __backendId: 'local_' + (this._idCounter++) };
-        this._data.push(newRecord);
-        this._save();
-        this._notify();
-        return { isOk: true, isError: false };
-      },
-      
-      async update(record) {
-        const index = this._data.findIndex(d => d.__backendId === record.__backendId);
-        if (index >= 0) {
-          this._data[index] = { ...record };
-          this._save();
-          this._notify();
-        }
-        return { isOk: true, isError: false };
-      },
-      
-      async delete(record) {
-        this._data = this._data.filter(d => d.__backendId !== record.__backendId);
-        this._save();
-        this._notify();
-        return { isOk: true, isError: false };
-      },
-      
-      _save() {
-        try { localStorage.setItem('tallysheet_data', JSON.stringify(this._data)); } catch (e) {}
-      },
-      
-      _notify() {
-        if (this._handler) this._handler.onDataChanged([...this._data]);
+        updateItemList();
       }
     };
 
@@ -1119,29 +1812,54 @@
 
     async function init() {
       $('tgl').value = new Date().toISOString().split('T')[0];
+      
       restoreSessionInfo();
       saveSessionId(currentSessionId);
+      $('sessionBadge').textContent = currentSessionId;
+      updateInputMode();
 
-      // Tab navigation
       $('tabInput').onclick = () => switchTab('input');
       $('tabHistory').onclick = () => switchTab('history');
 
-      // Event listeners
       $('btnAdd').onclick = handleAdd;
       $('inputGram').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleAdd();
       });
+      
+      $('btnAddJumlah').onclick = handleAddJumlah;
+      $('inputJumlahKarung').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAddJumlah();
+      });
+      
       $('btnSaveSession').onclick = handleSaveSession;
       $('btnNewSession').onclick = handleNewSession;
       $('btnReset').onclick = handleResetAll;
       $('btnExcel').onclick = exportToExcel;
       $('btnPDF').onclick = exportToPDF;
 
-      const sessionInputs = ['tgl', 'cust', 'item', 'ekspedisi', 'checker', 'platnomor'];
-      sessionInputs.forEach(id => {
+      ['tgl', 'cust', 'item', 'ekspedisi', 'checker', 'platnomor', 'nomordo'].forEach(id => {
         $(id).addEventListener('input', saveSessionInfo);
         $(id).addEventListener('change', saveSessionInfo);
       });
+      
+      $('satuan').addEventListener('change', () => {
+        saveSessionInfo();
+        updateInputMode();
+      });
+
+      $('itemSelect').addEventListener('change', function() {
+        const selectedValue = this.value;
+        
+        if (selectedValue === '__new__') {
+          showAddItemDialog();
+          this.value = $('item').value || '';
+        } else {
+          $('item').value = selectedValue;
+          saveSessionInfo();
+        }
+      });
+
+      updateItemList();
 
       if (window.elementSdk) {
         window.elementSdk.init({
@@ -1152,18 +1870,15 @@
         });
       }
 
-      const sdk = window.dataSdk || localFallbackSdk;
-      window.activeSdk = sdk;
-      
-      const result = await sdk.init(dataHandler);
-      if (!result.isOk) {
-        showToast('Gagal menghubungkan ke database', 'error');
-      } else if (!window.dataSdk) {
-        showToast('Mode lokal - data disimpan di browser', 'info');
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          showToast('Gagal menghubungkan ke database', 'error');
+        }
       }
     }
 
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9aee7a1d547bdf74',t:'MTc2NTg5MTIxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b5fd0e276fbf8d3',t:'MTc2NzA3OTY2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
